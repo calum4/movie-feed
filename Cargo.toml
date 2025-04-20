@@ -1,0 +1,14 @@
+[package]
+name = "movie-feed"
+version = "0.1.0"
+authors = ["Calum4"]
+edition = "2024"
+#description = "TODO description"
+readme = "README.md"
+repository = "https://github.com/calum4/movie-feed"
+license = "MIT OR Apache-2.0"
+#keywords = ["TODO keywords"]
+#categories = ["command-line-utilities"] # TODO categories
+publish = true
+
+[dependencies]
