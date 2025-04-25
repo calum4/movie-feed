@@ -1,14 +1,32 @@
-[package]
-name = "movie-feed"
-version = "0.1.0"
-authors = ["Calum4"]
-edition = "2024"
-#description = "TODO description"
-readme = "README.md"
-repository = "https://github.com/calum4/movie-feed"
-license = "MIT OR Apache-2.0"
-#keywords = ["TODO keywords"]
-#categories = ["command-line-utilities"] # TODO categories
-publish = true
+[workspace]
+resolver = "2"
+members = ["lib/*"]
+default-members = ["lib/movie-feed"]
 
-[dependencies]
+[workspace.package]
+authors = ["Calum4"]
+categories = ["command-line-utilities"] # TODO categories
+description = "a" # TODO description
+edition = "2024"
+keywords = ["feed", "movie", "tv", "tmdb", "rss"]
+license = "MIT OR Apache-2.0"
+publish = false
+readme = "./README.md"
+repository = "https://github.com/calum4/movie-feed"
+version = "0.1.0"
+
+[workspace.dependencies]
+# Local crates
+tmdb = {path = "lib/tmdb", version = "0.0.0"}
+
+# Non-local crates
+tokio = {version = "1.44.2", features = ["rt", "rt-multi-thread", "macros"]}
+tracing = {version = "0.1.41", features = []}
+tracing-subscriber = {version = "0.3.19", features = ["env-filter"]}
+reqwest = {version = "0.12.15", features = ["json"]}
+serde = {version = "1.0.219", features = ["serde_derive"]}
+serde_json = {version = "1.0.140", features = []}
+chrono = {version = "0.4.40", features = ["serde"]}
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

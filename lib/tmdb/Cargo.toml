@@ -1,0 +1,28 @@
+[package]
+name = "tmdb"
+description = ""
+repository = "https://github.com/calum4/movie-feed/tree/main/lib/tmdb"
+publish = false
+version = "0.0.0"
+
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+
+[dependencies]
+tokio = {workspace = true}
+tracing = {workspace = true}
+reqwest = {workspace = true}
+serde = {workspace = true}
+chrono = {workspace = true}
+tmdb-macros = {path = "../tmdb-macros"}
+
+serde-inline-default = {git = "https://github.com/bytedream/serde-inline-default", rev = "6c014e41a62283774c839cca7a53096a49e22845"}
+
+[dev-dependencies]
+http = {version = "1.3.1"}
+serde_json = {workspace = true}
+
+[lints]
+workspace = true

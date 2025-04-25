@@ -1,0 +1,42 @@
+use std::env;
+use tmdb::Tmdb;
+use tmdb::endpoints::person::combined_credits;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt::format::FmtSpan;
+
+#[cfg(debug_assertions)]
+fn start_tracing() {
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .with_file(true)
+        .with_line_number(true)
+        .with_env_filter(EnvFilter::from_default_env())
+        .with_span_events(FmtSpan::CLOSE)
+        .init();
+}
+
+#[cfg(not(debug_assertions))]
+fn start_tracing() {
+    tracing_subscriber::fmt()
+        .with_target(true)
+        .with_file(false)
+        .with_line_number(false)
+        .with_env_filter(EnvFilter::from_default_env())
+        .with_span_events(FmtSpan::CLOSE)
+        .init();
+}
+
+#[tokio::main]
+async fn main() {
+    start_tracing();
+
+    let http_client = reqwest::Client::new();
+
+    let token = env::var("TMDB_TOKEN").unwrap(); // TODO - Secret & remove unwrap
+    let tmbd = Tmdb::new(http_client, token);
+
+    let person_id = "19498"; // Jon Bernthal
+
+    let kek = combined_credits::get(&tmbd, person_id).await;
+    dbg!(kek.unwrap());
+}
