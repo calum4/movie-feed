@@ -21,7 +21,9 @@ tokio = {workspace = true}
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true}
 reqwest = {workspace = true}
-
+serde = { workspace = true }
+secrecy = {workspace = true, features = ["serde"]}
+figment = {version = "0.10.19", features = ["env"]}
 
 [lints]
 workspace = true

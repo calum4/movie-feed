@@ -1,8 +1,10 @@
-use std::env;
+mod config;
+
 use tmdb::Tmdb;
 use tmdb::endpoints::person::combined_credits;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::fmt::format::FmtSpan;
+use crate::config::config;
 
 #[cfg(debug_assertions)]
 fn start_tracing() {
@@ -28,12 +30,13 @@ fn start_tracing() {
 
 #[tokio::main]
 async fn main() {
+    let config = config();
+
     start_tracing();
 
     let http_client = reqwest::Client::new();
-
-    let token = env::var("TMDB_TOKEN").unwrap(); // TODO - config & remove unwrap
-    let tmbd = Tmdb::new(http_client, token.into());
+    
+    let tmbd = Tmdb::new(http_client, config.tmdb_token.clone());
 
     let person_id = "19498"; // Jon Bernthal
 
