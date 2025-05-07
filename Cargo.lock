@@ -1056,16 +1056,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde-inline-default"
-version = "0.2.3"
-source = "git+https://github.com/bytedream/serde-inline-default?rev=6c014e41a62283774c839cca7a53096a49e22845#6c014e41a62283774c839cca7a53096a49e22845"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "serde_derive"
 version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1245,8 +1235,6 @@ dependencies = [
  "http",
  "reqwest",
  "serde",
- "serde-inline-default",
- "serde_json",
  "tmdb-macros",
  "tokio",
  "tracing",
