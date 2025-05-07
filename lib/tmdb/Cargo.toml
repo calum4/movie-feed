@@ -16,6 +16,7 @@ tracing = {workspace = true}
 reqwest = {workspace = true}
 serde = {workspace = true}
 chrono = {workspace = true}
+secrecy = {workspace = true}
 tmdb-macros = {path = "../tmdb-macros"}
 
 [dev-dependencies]

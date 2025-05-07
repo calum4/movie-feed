@@ -10,11 +10,13 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
     path: P,
     method: Method,
 ) -> Result<Response, reqwest::Error> {
+    use secrecy::ExposeSecret;
+    
     let url = format!("https://{API_HOST}/{API_VERSION}/{path}");
 
     tmdb.http_client
         .request(method, url)
-        .bearer_auth(tmdb.token.as_str())
+        .bearer_auth(tmdb.token.expose_secret())
         .send()
         .await
 }
@@ -53,7 +55,7 @@ pub(crate) mod tests {
     use super::*;
 
     fn init() -> Tmdb {
-        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".to_string())
+        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
     }
     
     #[tokio::test]

@@ -153,7 +153,7 @@ mod tests {
     use reqwest::Client;
 
     fn init() -> Tmdb {
-        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".to_string())
+        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
     }
 
     #[tokio::test]

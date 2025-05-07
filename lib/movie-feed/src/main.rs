@@ -32,8 +32,8 @@ async fn main() {
 
     let http_client = reqwest::Client::new();
 
-    let token = env::var("TMDB_TOKEN").unwrap(); // TODO - Secret & remove unwrap
-    let tmbd = Tmdb::new(http_client, token);
+    let token = env::var("TMDB_TOKEN").unwrap(); // TODO - config & remove unwrap
+    let tmbd = Tmdb::new(http_client, token.into());
 
     let person_id = "19498"; // Jon Bernthal
 
