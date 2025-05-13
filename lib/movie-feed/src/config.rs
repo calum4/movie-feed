@@ -1,5 +1,7 @@
 use std::fs::read_to_string;
+use std::net::{IpAddr, Ipv4Addr};
 use std::sync::OnceLock;
+use axum_client_ip::ClientIpSource;
 use figment::Figment;
 use figment::providers::Env;
 use secrecy::{SecretString};
@@ -8,6 +10,8 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
     pub(crate) tmdb_token: SecretString,
+    #[serde(default)]
+    pub(crate) api: ApiConfig,
 }
 
 pub(crate) fn config() -> &'static Config {
@@ -21,6 +25,8 @@ pub(crate) fn config() -> &'static Config {
 struct EnvConfig {
     tmdb_token: Option<SecretString>,
     tmdb_token_file: Option<String>,
+    #[serde(default)]
+    api: ApiConfig,
 }
 
 fn env_config() -> Config {
@@ -37,7 +43,26 @@ fn env_config() -> Config {
     
     Config {
         tmdb_token: config.tmdb_token.expect("missing tmdb_token field"),
+        api: config.api,
     }
 }
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ApiConfig {
+    pub(crate) listen_address: IpAddr,
+    pub(crate) listen_port: u16,
+    pub(crate) client_ip_source: ClientIpSource,
+}
+
+impl Default for ApiConfig {
+    fn default() -> Self {
+        Self {
+            listen_address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            listen_port: 8080,
+            client_ip_source: ClientIpSource::ConnectInfo,
+        }
+    }
+}
+
 
 // TODO - Tests

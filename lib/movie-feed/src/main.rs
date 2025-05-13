@@ -1,9 +1,12 @@
 mod config;
+mod api;
 
+use tracing::error;
 use tmdb::Tmdb;
 use tmdb::endpoints::person::combined_credits;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::fmt::format::FmtSpan;
+use crate::api::{start_api_server};
 use crate::config::config;
 
 #[cfg(debug_assertions)]
@@ -42,4 +45,17 @@ async fn main() {
 
     let kek = combined_credits::get(&tmbd, person_id).await;
     dbg!(kek.unwrap());
+    
+    let handle = match start_api_server(config).await {
+        Ok(handle) => handle,
+        Err(error) => {
+            error!("unable to start api server, exiting! {error}");
+            return;
+        }
+    };
+    
+    if let Err(error) = handle.await {
+        error!("there was an issue with the api server, exiting: {error}");
+        return;
+    }
 }
