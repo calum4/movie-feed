@@ -17,7 +17,9 @@ version = "0.1.0"
 
 [workspace.dependencies]
 # Local crates
-tmdb = {path = "lib/tmdb", version = "0.0.0"}
+movie-feed = {path = "lib/movie-feed"}
+tmdb = {path = "lib/tmdb"}
+tmdb-macros = {path = "lib/tmdb-macros"}
 
 # Non-local crates
 tokio = {version = "1.44.2", features = ["rt", "rt-multi-thread", "macros"]}
