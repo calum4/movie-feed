@@ -18,6 +18,7 @@ version = "0.1.0"
 [workspace.dependencies]
 # Local crates
 movie-feed = {path = "lib/movie-feed"}
+serde-utils = {path = "lib/serde-utils"}
 tmdb = {path = "lib/tmdb"}
 tmdb-macros = {path = "lib/tmdb-macros"}
 
