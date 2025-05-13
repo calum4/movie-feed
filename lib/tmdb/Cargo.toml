@@ -18,6 +18,7 @@ serde = {workspace = true}
 chrono = {workspace = true}
 secrecy = {workspace = true}
 tmdb-macros = {workspace = true}
+serde-utils = {workspace = true}
 
 [dev-dependencies]
 http = {version = "1.3.1"}

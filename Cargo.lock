@@ -1471,6 +1471,7 @@ dependencies = [
  "reqwest",
  "secrecy",
  "serde",
+ "serde-utils",
  "tmdb-macros",
  "tokio",
  "tracing",
