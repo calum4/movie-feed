@@ -1,11 +1,11 @@
-use std::fs::read_to_string;
-use std::net::{IpAddr, Ipv4Addr};
-use std::sync::OnceLock;
 use axum_client_ip::ClientIpSource;
 use figment::Figment;
 use figment::providers::Env;
-use secrecy::{SecretString};
+use secrecy::SecretString;
 use serde::Deserialize;
+use std::fs::read_to_string;
+use std::net::{IpAddr, Ipv4Addr};
+use std::sync::OnceLock;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Config {
@@ -37,10 +37,10 @@ fn env_config() -> Config {
 
     if let Some(tmdb_token_file) = &config.tmdb_token_file {
         let token = read_to_string(tmdb_token_file).expect("unable to read tmdb token file with the path provided in the MOVIE_FEED_TMDB_TOKEN_FILE environment variable");
-        
+
         config.tmdb_token = Some(token.into());
     }
-    
+
     Config {
         tmdb_token: config.tmdb_token.expect("missing tmdb_token field"),
         api: config.api,
@@ -63,6 +63,5 @@ impl Default for ApiConfig {
         }
     }
 }
-
 
 // TODO - Tests

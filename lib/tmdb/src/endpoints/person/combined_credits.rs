@@ -179,9 +179,18 @@ mod tests {
         assert_eq!(movie.title, "World Trade Center");
         assert_eq!(movie.original_title, "World Trade Center");
         assert_eq!(movie.character, "Christopher Amoroso");
-        assert_eq!(movie.genres, [MovieGenre::Drama, MovieGenre::History, MovieGenre::Thriller]);
-        assert_eq!(movie.release_date, Some(NaiveDate::parse_from_str("2006-08-09", "%Y-%m-%d").unwrap()));
-        assert_eq!(movie.overview, "Two police officers struggle to survive when they become trapped beneath the rubble of the World Trade Center on September 11, 2001.");
+        assert_eq!(
+            movie.genres,
+            [MovieGenre::Drama, MovieGenre::History, MovieGenre::Thriller]
+        );
+        assert_eq!(
+            movie.release_date,
+            Some(NaiveDate::parse_from_str("2006-08-09", "%Y-%m-%d").unwrap())
+        );
+        assert_eq!(
+            movie.overview,
+            "Two police officers struggle to survive when they become trapped beneath the rubble of the World Trade Center on September 11, 2001."
+        );
         assert_eq!(movie.original_language, "en");
 
         let tv = match &cast[48] {
@@ -196,8 +205,14 @@ mod tests {
         assert_eq!(tv.original_name, "How I Met Your Mother");
         assert_eq!(tv.character, "Carlos");
         assert_eq!(tv.genres, [TvGenre::Comedy]);
-        assert_eq!(tv.first_air_date, Some(NaiveDate::parse_from_str("2005-09-19", "%Y-%m-%d").unwrap()));
-        assert_eq!(tv.overview, "A father recounts to his children - through a series of flashbacks - the journey he and his four best friends took leading up to him meeting their mother.");
+        assert_eq!(
+            tv.first_air_date,
+            Some(NaiveDate::parse_from_str("2005-09-19", "%Y-%m-%d").unwrap())
+        );
+        assert_eq!(
+            tv.overview,
+            "A father recounts to his children - through a series of flashbacks - the journey he and his four best friends took leading up to him meeting their mother."
+        );
         assert_eq!(tv.original_language, "en");
     }
 
@@ -225,9 +240,23 @@ mod tests {
         assert_eq!(movie.original_title, "Sherlock Holmes");
         assert_eq!(movie.department, "Directing");
         assert_eq!(movie.job, "Director");
-        assert_eq!(movie.genres, [MovieGenre::Action, MovieGenre::Adventure, MovieGenre::Crime, MovieGenre::Mystery]);
-        assert_eq!(movie.release_date, Some(NaiveDate::parse_from_str("2009-12-23", "%Y-%m-%d").unwrap()));
-        assert_eq!(movie.overview, "Eccentric consulting detective Sherlock Holmes and Doctor John Watson battle to bring down a new nemesis and unravel a deadly plot that could destroy England.");
+        assert_eq!(
+            movie.genres,
+            [
+                MovieGenre::Action,
+                MovieGenre::Adventure,
+                MovieGenre::Crime,
+                MovieGenre::Mystery
+            ]
+        );
+        assert_eq!(
+            movie.release_date,
+            Some(NaiveDate::parse_from_str("2009-12-23", "%Y-%m-%d").unwrap())
+        );
+        assert_eq!(
+            movie.overview,
+            "Eccentric consulting detective Sherlock Holmes and Doctor John Watson battle to bring down a new nemesis and unravel a deadly plot that could destroy England."
+        );
         assert_eq!(movie.original_language, "en");
 
         let tv = match &crew[59] {
@@ -243,8 +272,14 @@ mod tests {
         assert_eq!(movie.department, "Directing");
         assert_eq!(movie.job, "Director");
         assert_eq!(tv.genres, [TvGenre::Comedy, TvGenre::Drama, TvGenre::Crime]);
-        assert_eq!(tv.first_air_date, Some(NaiveDate::parse_from_str("2024-03-07", "%Y-%m-%d").unwrap()));
-        assert_eq!(tv.overview, "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere.");
+        assert_eq!(
+            tv.first_air_date,
+            Some(NaiveDate::parse_from_str("2024-03-07", "%Y-%m-%d").unwrap())
+        );
+        assert_eq!(
+            tv.overview,
+            "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere."
+        );
         assert_eq!(tv.original_language, "en");
     }
 }

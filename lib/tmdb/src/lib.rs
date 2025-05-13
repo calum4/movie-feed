@@ -20,14 +20,14 @@ impl Tmdb {
 
 #[cfg(test)]
 mod tests {
-    use std::any::{Any, TypeId};
-    use secrecy::ExposeSecret;
     use super::*;
+    use secrecy::ExposeSecret;
+    use std::any::{Any, TypeId};
 
     #[test]
     fn test_new() {
         let tmdb = Tmdb::new(Client::new(), SecretString::from("NO_TOKEN_REQUIRED"));
-        
+
         assert_eq!(tmdb.token.expose_secret(), "NO_TOKEN_REQUIRED");
         assert_eq!(tmdb.http_client.type_id(), TypeId::of::<Client>());
     }

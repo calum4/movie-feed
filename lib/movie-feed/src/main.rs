@@ -1,13 +1,13 @@
-mod config;
 mod api;
+mod config;
 
-use tracing::error;
+use crate::api::start_api_server;
+use crate::config::config;
 use tmdb::Tmdb;
 use tmdb::endpoints::person::combined_credits;
+use tracing::error;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::fmt::format::FmtSpan;
-use crate::api::{start_api_server};
-use crate::config::config;
 
 #[cfg(debug_assertions)]
 fn start_tracing() {
@@ -38,14 +38,14 @@ async fn main() {
     start_tracing();
 
     let http_client = reqwest::Client::new();
-    
+
     let tmbd = Tmdb::new(http_client, config.tmdb_token.clone());
 
     let person_id = "19498"; // Jon Bernthal
 
     let kek = combined_credits::get(&tmbd, person_id).await;
     dbg!(kek.unwrap());
-    
+
     let handle = match start_api_server(config).await {
         Ok(handle) => handle,
         Err(error) => {
@@ -53,7 +53,7 @@ async fn main() {
             return;
         }
     };
-    
+
     if let Err(error) = handle.await {
         error!("there was an issue with the api server, exiting: {error}");
         return;
