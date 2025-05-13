@@ -59,7 +59,7 @@ pub(crate) async fn start_api_server(config: &Config) -> Result<JoinHandle<()>, 
                     "request",
                     id = tracing::field::Empty,
                     method = display(request.method()),
-                    path = display(request.uri().path()),
+                    path = request.uri().path(),
                     ip = tracing::field::Empty,
                 )
             }),
