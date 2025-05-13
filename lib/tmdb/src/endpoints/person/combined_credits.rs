@@ -6,6 +6,7 @@ use chrono::NaiveDate;
 use reqwest::Method;
 use serde::{Deserialize, Deserializer};
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 pub struct CombinedCredits {
     #[serde(default)]
@@ -14,6 +15,7 @@ pub struct CombinedCredits {
     pub crew: Option<Vec<Crew>>,
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 #[serde(tag = "media_type")]
 pub enum Cast {
@@ -23,6 +25,7 @@ pub enum Cast {
     Tv(TvCast),
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 pub struct MovieCast {
     pub id: usize,
@@ -37,6 +40,7 @@ pub struct MovieCast {
     pub original_language: String,
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 pub struct TvCast {
     pub id: usize,
@@ -51,6 +55,7 @@ pub struct TvCast {
     pub original_language: String,
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 #[serde(tag = "media_type")]
 pub enum Crew {
@@ -61,6 +66,7 @@ pub enum Crew {
     Tv(TvCrew),
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 pub struct MovieCrew {
     pub id: usize,
@@ -76,6 +82,7 @@ pub struct MovieCrew {
     pub original_language: String,
 }
 
+#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
 pub struct TvCrew {
     pub id: usize,

@@ -6,10 +6,13 @@ use axum::middleware::Next;
 use axum::{middleware, serve};
 use axum_client_ip::ClientIp;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
+use tmdb::Tmdb;
 use tokio::net::TcpListener;
 use tokio::task::JoinHandle;
+use tower_http::add_extension::AddExtensionLayer;
 use tower_http::request_id::{
     MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer,
 };
@@ -27,12 +30,26 @@ pub(crate) enum ApiError {
     BindError(#[from] std::io::Error),
 }
 
-pub(crate) async fn start_api_server(config: &Config) -> Result<JoinHandle<()>, ApiError> {
+pub(crate) struct ApiState {
+    tmdb: Tmdb,
+}
+
+impl ApiState {
+    pub(crate) fn new(tmdb: Tmdb) -> Self {
+        Self { tmdb }
+    }
+}
+
+pub(crate) async fn start_api_server(
+    config: &Config,
+    api_state: ApiState,
+) -> Result<JoinHandle<()>, ApiError> {
     let addr = SocketAddr::from((config.api.listen_address, config.api.listen_port));
 
     let listener = TcpListener::bind(addr).await?;
 
     let router = routes()
+        .layer(AddExtensionLayer::new(Arc::new(api_state)))
         .layer(middleware::from_fn(async |request: Request, next: Next| {
             let span = Span::current();
 
