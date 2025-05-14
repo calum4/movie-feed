@@ -36,17 +36,12 @@ mod tests {
     use super::*;
     use crate::models::genres::{MovieGenre, TvGenre};
     use chrono::NaiveDate;
-    use reqwest::Client;
-
-    fn init() -> Tmdb {
-        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
-    }
 
     #[tokio::test]
     async fn test_get_19498_cast() {
         const PERSON_ID: &str = "19498";
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
@@ -106,7 +101,7 @@ mod tests {
     async fn test_get_19498_no_cast_credits() {
         const PERSON_ID: &str = "19498-no-cast-credits";
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), "19498");
@@ -119,7 +114,7 @@ mod tests {
     async fn test_get_956_crew() {
         const PERSON_ID: &str = "956";
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
@@ -186,7 +181,7 @@ mod tests {
     async fn test_get_956_no_crew_credits() {
         const PERSON_ID: &str = "956-no-crew-credits";
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), "956");

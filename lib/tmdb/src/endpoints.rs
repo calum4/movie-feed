@@ -52,15 +52,10 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use reqwest::Client;
-
-    fn init() -> Tmdb {
-        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
-    }
 
     #[tokio::test]
     async fn test_request() {
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         #[derive(serde::Deserialize)]
         struct Body {

@@ -21,11 +21,6 @@ mod tests {
     use super::*;
     use crate::models::gender::Gender;
     use chrono::NaiveDate;
-    use reqwest::Client;
-
-    fn init() -> Tmdb {
-        Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
-    }
 
     #[tokio::test]
     async fn test_get_19498() {
@@ -34,7 +29,7 @@ mod tests {
 
 His film roles include Snitch (2013), The Wolf of Wall Street (2013), Fury (2014), Sicario (2015), The Accountant (2016), Baby Driver (2017), Wind River (2017), Widows (2018), Ford v Ferrari (2019), Those Who Wish Me Dead (2021), King Richard (2021), The Many Saints of Newark (2021), Origin (2023), and The Accountant 2 (2025)."#;
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
 
@@ -83,7 +78,7 @@ His other directed films include The Man from U.N.C.L.E. (2015), based on the�
 
 Description above from the Wikipedia article Guy Ritchie, licensed under CC-BY-SA, full list of contributors on Wikipedia."#;
 
-        let tmdb = init();
+        let tmdb = Tmdb::default();
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
 

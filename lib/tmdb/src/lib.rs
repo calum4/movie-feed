@@ -19,6 +19,16 @@ impl Tmdb {
     }
 }
 
+#[cfg(any(test, feature = "test_utils"))]
+impl Default for Tmdb {
+    fn default() -> Self {
+        Self {
+            token: SecretString::from("THIS_IS_A_TEST"),
+            http_client: Client::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -30,6 +40,14 @@ mod tests {
         let tmdb = Tmdb::new(Client::new(), SecretString::from("NO_TOKEN_REQUIRED"));
 
         assert_eq!(tmdb.token.expose_secret(), "NO_TOKEN_REQUIRED");
+        assert_eq!(tmdb.http_client.type_id(), TypeId::of::<Client>());
+    }
+
+    #[test]
+    fn test_default() {
+        let tmdb = Tmdb::default();
+
+        assert_eq!(tmdb.token.expose_secret(), "THIS_IS_A_TEST");
         assert_eq!(tmdb.http_client.type_id(), TypeId::of::<Client>());
     }
 }
