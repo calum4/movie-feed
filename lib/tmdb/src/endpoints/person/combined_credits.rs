@@ -10,8 +10,10 @@ use serde::Deserialize;
 pub struct CombinedCredits {
     #[serde(default)]
     pub id: u64,
-    pub cast: Option<Vec<Cast>>,
-    pub crew: Option<Vec<Crew>>,
+    #[serde(default)]
+    pub cast: Vec<Cast>,
+    #[serde(default)]
+    pub crew: Vec<Crew>,
 }
 
 /// [GET: Combined Credits](https://developer.themoviedb.org/v3/reference/person-combined-credits)
@@ -49,7 +51,7 @@ mod tests {
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
 
-        let cast = response.cast.unwrap();
+        let cast = response.cast;
         assert_eq!(cast.len(), 75);
 
         let movie = match &cast[0] {
@@ -101,6 +103,19 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_19498_no_cast_credits() {
+        const PERSON_ID: &str = "19498-no-cast-credits";
+
+        let tmdb = init();
+
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+        assert_eq!(response.id.to_string(), "19498");
+
+        assert_eq!(response.cast.len(), 0);
+        assert_eq!(response.crew.len(), 3);
+    }
+
+    #[tokio::test]
     async fn test_get_956_crew() {
         const PERSON_ID: &str = "956";
 
@@ -109,7 +124,7 @@ mod tests {
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
 
-        let crew = response.crew.unwrap();
+        let crew = response.crew;
         assert_eq!(crew.len(), 66);
 
         let movie = match &crew[7] {
@@ -165,5 +180,18 @@ mod tests {
             "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere."
         );
         assert_eq!(tv.original_language, "en");
+    }
+
+    #[tokio::test]
+    async fn test_get_956_no_crew_credits() {
+        const PERSON_ID: &str = "956-no-crew-credits";
+
+        let tmdb = init();
+
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+        assert_eq!(response.id.to_string(), "956");
+
+        assert_eq!(response.cast.len(), 13);
+        assert_eq!(response.crew.len(), 0);
     }
 }
