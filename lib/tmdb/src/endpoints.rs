@@ -32,16 +32,23 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
     use std::fs::read_to_string;
     use tracing::warn;
 
-    let url = Url::parse(format!("https://{API_HOST}/{API_VERSION}/{path}").as_str()).unwrap();
+    const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
     warn!("using pre-baked responses!");
 
-    let body = read_to_string(format!(
-        "response_files{}/{}.json",
+    let url = Url::parse(format!("https://{API_HOST}/{API_VERSION}/{path}").as_str()).unwrap();
+    let path = format!(
+        "{MANIFEST_DIR}/response_files{}/{}.json",
         url.path(),
         method.as_str()
-    ))
-    .unwrap();
+    );
+
+    let body = match read_to_string(path.as_str()) {
+        Ok(body) => body,
+        Err(error) => {
+            panic!(r#"unable to open response file with path "{path}", error: {error}"#);
+        }
+    };
 
     let response = Builder::new()
         .status(200)
