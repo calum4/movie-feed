@@ -30,8 +30,11 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
     use http::response::Builder;
     use reqwest::{ResponseBuilderExt, Url};
     use std::fs::read_to_string;
+    use tracing::warn;
 
     let url = Url::parse(format!("https://{API_HOST}/{API_VERSION}/{path}").as_str()).unwrap();
+
+    warn!("using pre-baked responses!");
 
     let body = read_to_string(format!(
         "response_files{}/{}.json",
@@ -52,8 +55,10 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
+    use tracing_test::traced_test;
 
     #[tokio::test]
+    #[traced_test]
     async fn test_request() {
         let tmdb = Tmdb::default();
 
@@ -72,5 +77,6 @@ pub(crate) mod tests {
 
         assert_eq!(body.filename.as_str(), "GET.json");
         assert_eq!(body.date.as_str(), "2025-05-06");
+        assert!(logs_contain("using pre-baked responses!"));
     }
 }
