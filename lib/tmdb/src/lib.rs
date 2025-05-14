@@ -6,6 +6,7 @@ use secrecy::SecretString;
 
 pub const API_HOST: &str = "api.themoviedb.org";
 pub const API_VERSION: u8 = 3;
+pub const SITE_URL: &str = "https://www.themoviedb.org";
 
 pub struct Tmdb {
     token: SecretString,
