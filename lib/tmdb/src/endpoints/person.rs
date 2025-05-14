@@ -1,35 +1,9 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use crate::models::gender::Gender;
-use chrono::NaiveDate;
 use reqwest::Method;
-use serde::Deserialize;
+use crate::models::person_details::PersonDetails;
 
 pub mod combined_credits;
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-pub struct PersonDetails {
-    #[serde(default = "serde_utils::bool_true")]
-    adult: bool,
-    #[serde(default = "serde_utils::vec_zero_size")]
-    also_known_as: Vec<String>,
-    biography: Option<String>,
-    birthday: Option<NaiveDate>,
-    deathday: Option<NaiveDate>,
-    #[serde(default)]
-    gender: Gender,
-    homepage: Option<String>,
-    #[serde(default)]
-    id: i32,
-    imdb_id: Option<String>,
-    known_for_department: String,
-    name: String,
-    place_of_birth: Option<String>,
-    #[serde(default)]
-    popularity: f32,
-    profile_path: Option<String>,
-}
 
 /// [GET: Person Details](https://developer.themoviedb.org/reference/person-details)
 ///
@@ -44,8 +18,10 @@ pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, reqwest::
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
     use super::*;
     use reqwest::Client;
+    use crate::models::gender::Gender;
 
     fn init() -> Tmdb {
         Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())

@@ -1,10 +1,9 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use crate::models::genre_id::GenreId;
-use crate::models::genres::{MovieGenre, TvGenre};
-use chrono::NaiveDate;
 use reqwest::Method;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
+use crate::models::cast::Cast;
+use crate::models::crew::Crew;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
@@ -13,130 +12,6 @@ pub struct CombinedCredits {
     pub id: u64,
     pub cast: Option<Vec<Cast>>,
     pub crew: Option<Vec<Crew>>,
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-#[serde(tag = "media_type")]
-pub enum Cast {
-    #[serde(rename = "movie")]
-    Movie(MovieCast),
-    #[serde(rename = "tv")]
-    Tv(TvCast),
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-pub struct MovieCast {
-    pub id: usize,
-    pub title: String,
-    pub original_title: String,
-    pub character: String,
-    #[serde(deserialize_with = "deserialize_movie_genre", flatten)]
-    pub genres: Vec<MovieGenre>,
-    #[serde(deserialize_with = "deserialize_release_date")]
-    pub release_date: Option<NaiveDate>,
-    pub overview: String,
-    pub original_language: String,
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-pub struct TvCast {
-    pub id: usize,
-    pub name: String,
-    pub original_name: String,
-    pub character: String,
-    #[serde(deserialize_with = "deserialize_tv_genre", flatten)]
-    pub genres: Vec<TvGenre>,
-    #[serde(deserialize_with = "deserialize_release_date")]
-    pub first_air_date: Option<NaiveDate>,
-    pub overview: String,
-    pub original_language: String,
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-#[serde(tag = "media_type")]
-pub enum Crew {
-    #[serde(rename = "movie")]
-    Movie(MovieCrew),
-
-    #[serde(rename = "tv")]
-    Tv(TvCrew),
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-pub struct MovieCrew {
-    pub id: usize,
-    pub title: String,
-    pub original_title: String,
-    pub department: String,
-    pub job: String,
-    #[serde(deserialize_with = "deserialize_movie_genre", flatten)]
-    pub genres: Vec<MovieGenre>,
-    #[serde(deserialize_with = "deserialize_release_date")]
-    pub release_date: Option<NaiveDate>,
-    pub overview: String,
-    pub original_language: String,
-}
-
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
-pub struct TvCrew {
-    pub id: usize,
-    pub name: String,
-    pub original_name: String,
-    pub department: String,
-    pub job: String,
-    #[serde(deserialize_with = "deserialize_tv_genre", flatten)]
-    pub genres: Vec<TvGenre>,
-    #[serde(deserialize_with = "deserialize_release_date")]
-    pub first_air_date: Option<NaiveDate>,
-    pub overview: String,
-    pub original_language: String,
-}
-
-fn deserialize_movie_genre<'de, D>(deserializer: D) -> Result<Vec<MovieGenre>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Data {
-        genre_ids: Vec<GenreId>,
-    }
-
-    let Data { genre_ids } = Data::deserialize(deserializer)?;
-
-    Ok(genre_ids.into_iter().map(MovieGenre::from).collect())
-}
-
-fn deserialize_tv_genre<'de, D>(deserializer: D) -> Result<Vec<TvGenre>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Data {
-        genre_ids: Vec<GenreId>,
-    }
-
-    let Data { genre_ids } = Data::deserialize(deserializer)?;
-
-    Ok(genre_ids.into_iter().map(TvGenre::from).collect())
-}
-
-fn deserialize_release_date<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let date: &str = Deserialize::deserialize(deserializer)?;
-
-    if date.is_empty() {
-        return Ok(None);
-    }
-
-    Ok(NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
 }
 
 /// [GET: Combined Credits](https://developer.themoviedb.org/v3/reference/person-combined-credits)
@@ -156,8 +31,10 @@ pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, reqwes
 
 #[cfg(test)]
 mod tests {
+    use chrono::NaiveDate;
     use super::*;
     use reqwest::Client;
+    use crate::models::genres::{MovieGenre, TvGenre};
 
     fn init() -> Tmdb {
         Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())
