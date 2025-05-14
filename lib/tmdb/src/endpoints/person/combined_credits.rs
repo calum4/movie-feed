@@ -1,9 +1,9 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use reqwest::Method;
-use serde::Deserialize;
 use crate::models::cast::Cast;
 use crate::models::crew::Crew;
+use reqwest::Method;
+use serde::Deserialize;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
@@ -31,10 +31,10 @@ pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, reqwes
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
     use super::*;
-    use reqwest::Client;
     use crate::models::genres::{MovieGenre, TvGenre};
+    use chrono::NaiveDate;
+    use reqwest::Client;
 
     fn init() -> Tmdb {
         Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())

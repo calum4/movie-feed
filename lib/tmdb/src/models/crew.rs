@@ -1,7 +1,9 @@
+use crate::models::cast::{
+    deserialize_movie_genre, deserialize_release_date, deserialize_tv_genre,
+};
+use crate::models::genres::{MovieGenre, TvGenre};
 use chrono::NaiveDate;
 use serde::Deserialize;
-use crate::models::genres::{MovieGenre, TvGenre};
-use crate::models::cast::{deserialize_movie_genre, deserialize_tv_genre, deserialize_release_date};
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]

@@ -1,7 +1,7 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use reqwest::Method;
 use crate::models::person_details::PersonDetails;
+use reqwest::Method;
 
 pub mod combined_credits;
 
@@ -18,10 +18,10 @@ pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, reqwest::
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
     use super::*;
-    use reqwest::Client;
     use crate::models::gender::Gender;
+    use chrono::NaiveDate;
+    use reqwest::Client;
 
     fn init() -> Tmdb {
         Tmdb::new(Client::new(), "NO_TOKEN_REQUIRED".into())

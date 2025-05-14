@@ -1,7 +1,7 @@
-use chrono::NaiveDate;
-use serde::{Deserialize, Deserializer};
 use crate::models::genre_id::GenreId;
 use crate::models::genres::{MovieGenre, TvGenre};
+use chrono::NaiveDate;
+use serde::{Deserialize, Deserializer};
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
@@ -71,7 +71,9 @@ where
     Ok(genre_ids.into_iter().map(TvGenre::from).collect())
 }
 
-pub(super) fn deserialize_release_date<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+pub(super) fn deserialize_release_date<'de, D>(
+    deserializer: D,
+) -> Result<Option<NaiveDate>, D::Error>
 where
     D: Deserializer<'de>,
 {
