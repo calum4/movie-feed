@@ -4,7 +4,7 @@ use std::fmt::Display;
 
 pub mod person;
 
-#[cfg(not(test))]
+#[cfg(not(any(test, feature = "use_prebaked_responses")))]
 pub(crate) async fn request<P: AsRef<str> + Display>(
     tmdb: &Tmdb,
     path: P,
@@ -21,7 +21,7 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
         .await
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "use_prebaked_responses"))]
 pub(crate) async fn request<P: AsRef<str> + Display>(
     _tmdb: &Tmdb,
     path: P,
