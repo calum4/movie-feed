@@ -11,6 +11,16 @@ pub enum MediaType {
     Unknown(String),
 }
 
+impl MediaType {
+    pub fn tmbd_url_prefix(&self) -> Option<&'static str> {
+        match self {
+            MediaType::Movie => Some("movie"),
+            MediaType::Tv => Some("tv"),
+            MediaType::Unknown(_) => None,
+        }
+    }
+}
+
 impl FromStr for MediaType {
     type Err = Infallible;
 
@@ -90,6 +100,16 @@ mod tests {
         assert_eq!(
             MediaType::from_str("radio").unwrap(),
             MediaType::Unknown("radio".to_string())
+        );
+    }
+
+    #[test]
+    fn test_tmbd_url_prefix() {
+        assert_eq!(MediaType::Tv.tmbd_url_prefix(), Some("tv"));
+        assert_eq!(MediaType::Movie.tmbd_url_prefix(), Some("movie"));
+        assert_eq!(
+            MediaType::Unknown("UNKNOWN".to_string()).tmbd_url_prefix(),
+            None
         );
     }
 }
