@@ -1,6 +1,6 @@
 use crate::SITE_URL;
 use crate::models::cast::{
-    MediaPageUrl, MediaTypeDefinition, deserialize_movie_genre, deserialize_release_date,
+    IsCredit, MediaPageUrl, MediaTypeDefinition, deserialize_movie_genre, deserialize_release_date,
     deserialize_tv_genre,
 };
 use crate::models::genres::{MovieGenre, TvGenre};
@@ -51,6 +51,9 @@ pub struct TvCrew {
     pub original_language: String,
 }
 
+impl IsCredit for MovieCrew {}
+impl IsCredit for TvCrew {}
+
 impl MediaTypeDefinition for MovieCrew {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
 }
@@ -82,6 +85,7 @@ impl MediaPageUrl for TvCrew {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use static_assertions::assert_impl_all;
 
     fn init_movie_crew() -> MovieCrew {
         MovieCrew {
@@ -109,6 +113,16 @@ mod tests {
             overview: "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere.".to_string(),
             original_language: "en".to_string(),
         }
+    }
+
+    #[test]
+    fn test_movie_crew_traits() {
+        assert_impl_all!(MovieCrew: IsCredit, MediaTypeDefinition, MediaPageUrl<MovieCrew>);
+    }
+
+    #[test]
+    fn test_tv_crew_traits() {
+        assert_impl_all!(TvCrew: IsCredit, MediaTypeDefinition, MediaPageUrl<TvCrew>);
     }
 
     #[test]

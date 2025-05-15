@@ -88,6 +88,11 @@ where
     Ok(NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
 }
 
+pub trait IsCredit {}
+
+impl IsCredit for MovieCast {}
+impl IsCredit for TvCast {}
+
 pub trait MediaTypeDefinition {
     const MEDIA_TYPE: MediaType;
 
@@ -132,6 +137,7 @@ impl MediaPageUrl for TvCast {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use static_assertions::assert_impl_all;
 
     fn init_movie_cast() -> MovieCast {
         MovieCast {
@@ -157,6 +163,16 @@ mod tests {
             overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),
             original_language: "en".to_string(),
         }
+    }
+
+    #[test]
+    fn test_movie_cast_traits() {
+        assert_impl_all!(MovieCast: IsCredit, MediaTypeDefinition, MediaPageUrl<MovieCast>);
+    }
+
+    #[test]
+    fn test_tv_cast_traits() {
+        assert_impl_all!(TvCast: IsCredit, MediaTypeDefinition, MediaPageUrl<TvCast>);
     }
 
     #[test]

@@ -24,6 +24,7 @@ http = {workspace = true, optional = true}
 [dev-dependencies]
 http = {workspace = true}
 tracing-test = {workspace = true}
+static_assertions = {workspace = true}
 
 [lints]
 workspace = true
