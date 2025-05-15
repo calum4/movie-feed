@@ -12,7 +12,7 @@ pub enum MediaType {
 }
 
 impl MediaType {
-    pub fn tmbd_url_prefix(&self) -> Option<&'static str> {
+    pub fn tmdb_url_prefix(&self) -> Option<&'static str> {
         match self {
             MediaType::Movie => Some("movie"),
             MediaType::Tv => Some("tv"),
@@ -104,11 +104,11 @@ mod tests {
     }
 
     #[test]
-    fn test_tmbd_url_prefix() {
-        assert_eq!(MediaType::Tv.tmbd_url_prefix(), Some("tv"));
-        assert_eq!(MediaType::Movie.tmbd_url_prefix(), Some("movie"));
+    fn test_tmdb_url_prefix() {
+        assert_eq!(MediaType::Tv.tmdb_url_prefix(), Some("tv"));
+        assert_eq!(MediaType::Movie.tmdb_url_prefix(), Some("movie"));
         assert_eq!(
-            MediaType::Unknown("UNKNOWN".to_string()).tmbd_url_prefix(),
+            MediaType::Unknown("UNKNOWN".to_string()).tmdb_url_prefix(),
             None
         );
     }

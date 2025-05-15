@@ -60,8 +60,8 @@ impl MediaTypeDefinition for TvCrew {
 }
 
 impl MediaPageUrl for MovieCrew {
-    fn imbd_media_url(&self) -> String {
-        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+    fn tmdb_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
@@ -70,8 +70,8 @@ impl MediaPageUrl for MovieCrew {
 }
 
 impl MediaPageUrl for TvCrew {
-    fn imbd_media_url(&self) -> String {
-        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+    fn tmdb_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
@@ -122,19 +122,19 @@ mod tests {
     }
 
     #[test]
-    fn test_movie_crew_imbd_media_url() {
+    fn test_movie_crew_tmdb_media_url() {
         let cast = init_movie_crew();
         assert_eq!(
-            cast.imbd_media_url(),
+            cast.tmdb_media_url(),
             "https://www.themoviedb.org/movie/1290379"
         );
     }
 
     #[test]
-    fn test_tv_crew_imbd_media_url() {
+    fn test_tv_crew_tmdb_media_url() {
         let cast = init_tv_crew();
         assert_eq!(
-            cast.imbd_media_url(),
+            cast.tmdb_media_url(),
             "https://www.themoviedb.org/tv/236235"
         );
     }

@@ -37,8 +37,8 @@ async fn main() {
     start_tracing();
 
     let http_client = reqwest::Client::new();
-    let tmbd = Tmdb::new(http_client, config.tmdb_token.clone());
-    let api_state = ApiState::new(tmbd);
+    let tmdb = Tmdb::new(http_client, config.tmdb_token.clone());
+    let api_state = ApiState::new(tmdb);
 
     let handle = match start_api_server(config, api_state).await {
         Ok(handle) => handle,

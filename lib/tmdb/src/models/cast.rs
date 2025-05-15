@@ -106,12 +106,12 @@ impl MediaTypeDefinition for TvCast {
 }
 
 pub trait MediaPageUrl<T: MediaTypeDefinition = Self> {
-    fn imbd_media_url(&self) -> String;
+    fn tmdb_media_url(&self) -> String;
 }
 
 impl MediaPageUrl for MovieCast {
-    fn imbd_media_url(&self) -> String {
-        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+    fn tmdb_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
@@ -120,8 +120,8 @@ impl MediaPageUrl for MovieCast {
 }
 
 impl MediaPageUrl for TvCast {
-    fn imbd_media_url(&self) -> String {
-        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+    fn tmdb_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
@@ -170,17 +170,17 @@ mod tests {
     }
 
     #[test]
-    fn test_movie_cast_imbd_media_url() {
+    fn test_movie_cast_tmdb_media_url() {
         let cast = init_movie_cast();
         assert_eq!(
-            cast.imbd_media_url(),
+            cast.tmdb_media_url(),
             "https://www.themoviedb.org/movie/273481"
         );
     }
 
     #[test]
-    fn test_tv_cast_imbd_media_url() {
+    fn test_tv_cast_tmdb_media_url() {
         let cast = init_tv_cast();
-        assert_eq!(cast.imbd_media_url(), "https://www.themoviedb.org/tv/67178");
+        assert_eq!(cast.tmdb_media_url(), "https://www.themoviedb.org/tv/67178");
     }
 }
