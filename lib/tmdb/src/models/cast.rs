@@ -1,5 +1,7 @@
+use crate::SITE_URL;
 use crate::models::genre_id::GenreId;
 use crate::models::genres::{MovieGenre, TvGenre};
+use crate::models::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
 
@@ -84,4 +86,80 @@ where
     }
 
     Ok(NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
+}
+
+pub trait MediaPageUrl {
+    const MEDIA_TYPE: MediaType;
+
+    fn imbd_media_url(&self) -> String;
+}
+
+impl MediaPageUrl for MovieCast {
+    const MEDIA_TYPE: MediaType = MediaType::Movie;
+
+    fn imbd_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+            "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
+        );
+
+        format!("{SITE_URL}/{media_url_prefix}/{}", self.id)
+    }
+}
+
+impl MediaPageUrl for TvCast {
+    const MEDIA_TYPE: MediaType = MediaType::Tv;
+
+    fn imbd_media_url(&self) -> String {
+        let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
+            "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
+        );
+
+        format!("{SITE_URL}/{media_url_prefix}/{}", self.id)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn init_movie_cast() -> MovieCast {
+        MovieCast {
+            id: 273481,
+            title: "Sicario".to_string(),
+            original_title: "Sicario".to_string(),
+            character: "Ted".to_string(),
+            genres: vec![MovieGenre::Action, MovieGenre::Crime, MovieGenre::Thriller],
+            release_date: NaiveDate::parse_from_str("2015-09-17", "%Y-%m-%d").ok(),
+            overview: "An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string(),
+            original_language: "en".to_string(),
+        }
+    }
+
+    fn init_tv_cast() -> TvCast {
+        TvCast {
+            id: 67178,
+            name: "Marvel's The Punisher".to_string(),
+            original_name: "Marvel's The Punisher".to_string(),
+            character: "Frank Castle / Punisher".to_string(),
+            genres: vec![TvGenre::ActionAndAdventure, TvGenre::Crime, TvGenre::Drama],
+            first_air_date: NaiveDate::parse_from_str("2017-11-17", "%Y-%m-%d").ok(),
+            overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),
+            original_language: "en".to_string(),
+        }
+    }
+
+    #[test]
+    fn test_movie_cast_imbd_media_url() {
+        let cast = init_movie_cast();
+        assert_eq!(
+            cast.imbd_media_url(),
+            "https://www.themoviedb.org/movie/273481"
+        );
+    }
+
+    #[test]
+    fn test_tv_cast_imbd_media_url() {
+        let cast = init_tv_cast();
+        assert_eq!(cast.imbd_media_url(), "https://www.themoviedb.org/tv/67178");
+    }
 }
