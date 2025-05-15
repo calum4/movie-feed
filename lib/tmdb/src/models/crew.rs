@@ -1,6 +1,7 @@
 use crate::SITE_URL;
 use crate::models::cast::{
-    MediaPageUrl, deserialize_movie_genre, deserialize_release_date, deserialize_tv_genre,
+    MediaPageUrl, MediaTypeDefinition, deserialize_movie_genre, deserialize_release_date,
+    deserialize_tv_genre,
 };
 use crate::models::genres::{MovieGenre, TvGenre};
 use crate::models::media_type::MediaType;
@@ -50,9 +51,15 @@ pub struct TvCrew {
     pub original_language: String,
 }
 
-impl MediaPageUrl for MovieCrew {
+impl MediaTypeDefinition for MovieCrew {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
+}
 
+impl MediaTypeDefinition for TvCrew {
+    const MEDIA_TYPE: MediaType = MediaType::Tv;
+}
+
+impl MediaPageUrl for MovieCrew {
     fn imbd_media_url(&self) -> String {
         let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
@@ -63,8 +70,6 @@ impl MediaPageUrl for MovieCrew {
 }
 
 impl MediaPageUrl for TvCrew {
-    const MEDIA_TYPE: MediaType = MediaType::Tv;
-
     fn imbd_media_url(&self) -> String {
         let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
@@ -104,6 +109,16 @@ mod tests {
             overview: "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere.".to_string(),
             original_language: "en".to_string(),
         }
+    }
+
+    #[test]
+    fn test_movie_crew_media_type() {
+        assert_eq!(MovieCrew::MEDIA_TYPE, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_tv_crew_media_type() {
+        assert_eq!(TvCrew::MEDIA_TYPE, MediaType::Tv);
     }
 
     #[test]

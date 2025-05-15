@@ -88,15 +88,28 @@ where
     Ok(NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
 }
 
-pub trait MediaPageUrl {
+pub trait MediaTypeDefinition {
     const MEDIA_TYPE: MediaType;
 
+    #[inline]
+    fn media_type(&self) -> MediaType {
+        Self::MEDIA_TYPE
+    }
+}
+
+impl MediaTypeDefinition for MovieCast {
+    const MEDIA_TYPE: MediaType = MediaType::Movie;
+}
+
+impl MediaTypeDefinition for TvCast {
+    const MEDIA_TYPE: MediaType = MediaType::Tv;
+}
+
+pub trait MediaPageUrl<T: MediaTypeDefinition = Self> {
     fn imbd_media_url(&self) -> String;
 }
 
 impl MediaPageUrl for MovieCast {
-    const MEDIA_TYPE: MediaType = MediaType::Movie;
-
     fn imbd_media_url(&self) -> String {
         let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
@@ -107,8 +120,6 @@ impl MediaPageUrl for MovieCast {
 }
 
 impl MediaPageUrl for TvCast {
-    const MEDIA_TYPE: MediaType = MediaType::Tv;
-
     fn imbd_media_url(&self) -> String {
         let media_url_prefix = Self::MEDIA_TYPE.tmbd_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
@@ -146,6 +157,16 @@ mod tests {
             overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),
             original_language: "en".to_string(),
         }
+    }
+
+    #[test]
+    fn test_movie_cast_media_type() {
+        assert_eq!(MovieCast::MEDIA_TYPE, MediaType::Movie);
+    }
+
+    #[test]
+    fn test_tv_cast_media_type() {
+        assert_eq!(TvCast::MEDIA_TYPE, MediaType::Tv);
     }
 
     #[test]
