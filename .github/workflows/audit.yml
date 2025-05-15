@@ -6,8 +6,8 @@ on:
     - cron: '0 0 * * *'
   push:
     paths:
-      - '../../movie-feed/Cargo.toml'
-      - '../../movie-feed/Cargo.lock'
+      - '../../**/Cargo.toml'
+      - '../../**/Cargo.lock'
   pull_request:
 
 jobs:
