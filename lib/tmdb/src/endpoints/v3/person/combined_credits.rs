@@ -1,7 +1,7 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use crate::models::cast::Cast;
-use crate::models::crew::Crew;
+use crate::models::v3::cast::Cast;
+use crate::models::v3::crew::Crew;
 use reqwest::Method;
 use serde::Deserialize;
 
@@ -34,7 +34,7 @@ pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, reqwes
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::genres::{MovieGenre, TvGenre};
+    use crate::models::v3::genres::{MovieGenre, TvGenre};
     use chrono::NaiveDate;
 
     #[tokio::test]

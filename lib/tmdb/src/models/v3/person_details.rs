@@ -1,5 +1,5 @@
 use crate::SITE_URL;
-use crate::models::gender::Gender;
+use crate::models::v3::gender::Gender;
 use chrono::NaiveDate;
 use serde::Deserialize;
 

@@ -160,7 +160,7 @@ make_genre!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::genre_id::GenreId;
+    use crate::models::v3::genre_id::GenreId;
 
     #[test]
     fn test_movie_genre_id() {

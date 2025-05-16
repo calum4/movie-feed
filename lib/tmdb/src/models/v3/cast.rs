@@ -1,7 +1,7 @@
 use crate::SITE_URL;
-use crate::models::genre_id::GenreId;
-use crate::models::genres::{MovieGenre, TvGenre};
-use crate::models::media_type::MediaType;
+use crate::models::v3::genre_id::GenreId;
+use crate::models::v3::genres::{MovieGenre, TvGenre};
+use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
 

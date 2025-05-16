@@ -1,6 +1,6 @@
 use crate::Tmdb;
 use crate::endpoints::request;
-use crate::models::person_details::PersonDetails;
+use crate::models::v3::person_details::PersonDetails;
 use reqwest::Method;
 
 pub mod combined_credits;
@@ -13,13 +13,15 @@ pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, reqwest::
 
     let response: reqwest::Response = request(tmdb, path, Method::GET).await?;
 
+    dbg!(response.status());
+
     response.json::<PersonDetails>().await
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::gender::Gender;
+    use crate::models::v3::gender::Gender;
     use chrono::NaiveDate;
 
     #[tokio::test]

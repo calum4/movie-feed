@@ -1,10 +1,10 @@
 use crate::SITE_URL;
-use crate::models::cast::{
+use crate::models::v3::cast::{
     IsCredit, MediaPageUrl, MediaTypeDefinition, deserialize_movie_genre, deserialize_release_date,
     deserialize_tv_genre,
 };
-use crate::models::genres::{MovieGenre, TvGenre};
-use crate::models::media_type::MediaType;
+use crate::models::v3::genres::{MovieGenre, TvGenre};
+use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::Deserialize;
 

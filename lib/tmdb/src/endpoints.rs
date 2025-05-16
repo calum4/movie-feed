@@ -2,7 +2,7 @@ use crate::{API_HOST, API_VERSION, Tmdb};
 use reqwest::{Method, Response};
 use std::fmt::Display;
 
-pub mod person;
+pub mod v3;
 
 #[cfg(not(any(test, feature = "use_prebaked_responses")))]
 pub(crate) async fn request<P: AsRef<str> + Display>(

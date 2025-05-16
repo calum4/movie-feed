@@ -82,7 +82,7 @@ pub fn make_genre(input: TokenStream) -> TokenStream {
         }
 
         impl #enum_ident {
-            pub fn id(&self) -> crate::models::genre_id::GenreId {
+            pub fn id(&self) -> crate::models::v3::genre_id::GenreId {
                 match *self {
                     #(#enum_ident::#genre_idents => #genre_ids,)*
                     #enum_ident::Unknown(id) => id,
@@ -97,8 +97,8 @@ pub fn make_genre(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl From<crate::models::genre_id::GenreId> for #enum_ident {
-            fn from(genre_id: crate::models::genre_id::GenreId) -> Self {
+        impl From<crate::models::v3::genre_id::GenreId> for #enum_ident {
+            fn from(genre_id: crate::models::v3::genre_id::GenreId) -> Self {
                 match *genre_id {
                     #(#genre_ids => Self::#genre_idents,)*
 
@@ -107,7 +107,7 @@ pub fn make_genre(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl From<#enum_ident> for crate::models::genre_id::GenreId {
+        impl From<#enum_ident> for crate::models::v3::genre_id::GenreId {
             fn from(genre: #enum_ident) -> Self {
                 genre.id()
             }
