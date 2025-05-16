@@ -1,0 +1,389 @@
+
+# cargo-vet config file
+
+[cargo-vet]
+version = "0.10"
+
+[imports.actix]
+url = "https://raw.githubusercontent.com/actix/supply-chain/main/audits.toml"
+
+[imports.bytecode-alliance]
+url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-chain/audits.toml"
+
+[imports.embark-studios]
+url = "https://raw.githubusercontent.com/EmbarkStudios/rust-ecosystem/main/audits.toml"
+
+[imports.fermyon]
+url = "https://raw.githubusercontent.com/fermyon/spin/main/supply-chain/audits.toml"
+
+[imports.google]
+url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
+
+[imports.isrg]
+url = "https://raw.githubusercontent.com/divviup/libprio-rs/main/supply-chain/audits.toml"
+
+[imports.mozilla]
+url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
+
+[imports.zcash]
+url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/audits.toml"
+
+[[exemptions.addr2line]]
+version = "0.24.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.atom_syndication]]
+version = "0.12.7"
+criteria = "safe-to-deploy"
+
+[[exemptions.atomic-waker]]
+version = "1.1.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.axum]]
+version = "0.8.4"
+criteria = "safe-to-deploy"
+
+[[exemptions.axum-client-ip]]
+version = "1.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.axum-core]]
+version = "0.5.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.bitflags]]
+version = "2.9.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.bytemuck]]
+version = "1.23.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.darling]]
+version = "0.20.11"
+criteria = "safe-to-deploy"
+
+[[exemptions.darling_core]]
+version = "0.20.11"
+criteria = "safe-to-deploy"
+
+[[exemptions.darling_macro]]
+version = "0.20.11"
+criteria = "safe-to-deploy"
+
+[[exemptions.derive_builder]]
+version = "0.20.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.derive_builder_core]]
+version = "0.20.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.derive_builder_macro]]
+version = "0.20.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.diligent-date-parser]]
+version = "0.1.5"
+criteria = "safe-to-deploy"
+
+[[exemptions.figment]]
+version = "0.10.19"
+criteria = "safe-to-deploy"
+
+[[exemptions.forwarded-header-value]]
+version = "0.1.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.getrandom]]
+version = "0.2.16"
+criteria = "safe-to-deploy"
+
+[[exemptions.getrandom]]
+version = "0.3.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.gimli]]
+version = "0.31.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_collections]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_locale_core]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_normalizer]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_normalizer_data]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_properties]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_properties_data]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.icu_provider]]
+version = "2.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.idna_adapter]]
+version = "1.2.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.inlinable_string]]
+version = "0.1.15"
+criteria = "safe-to-deploy"
+
+[[exemptions.ipnet]]
+version = "2.11.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.itertools]]
+version = "0.14.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.js-sys]]
+version = "0.3.77"
+criteria = "safe-to-deploy"
+
+[[exemptions.litemap]]
+version = "0.8.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.log]]
+version = "0.4.27"
+criteria = "safe-to-deploy"
+
+[[exemptions.matchit]]
+version = "0.8.4"
+criteria = "safe-to-deploy"
+
+[[exemptions.miniz_oxide]]
+version = "0.8.8"
+criteria = "safe-to-deploy"
+
+[[exemptions.mio]]
+version = "1.0.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.native-tls]]
+version = "0.2.14"
+criteria = "safe-to-deploy"
+
+[[exemptions.never]]
+version = "0.1.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.nonempty]]
+version = "0.7.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.object]]
+version = "0.36.7"
+criteria = "safe-to-deploy"
+
+[[exemptions.once_cell]]
+version = "1.21.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.openssl]]
+version = "0.10.72"
+criteria = "safe-to-deploy"
+
+[[exemptions.openssl-sys]]
+version = "0.9.108"
+criteria = "safe-to-deploy"
+
+[[exemptions.pear]]
+version = "0.2.9"
+criteria = "safe-to-deploy"
+
+[[exemptions.pear_codegen]]
+version = "0.2.9"
+criteria = "safe-to-deploy"
+
+[[exemptions.pkg-config]]
+version = "0.3.32"
+criteria = "safe-to-deploy"
+
+[[exemptions.proc-macro2-diagnostics]]
+version = "0.10.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.quick-xml]]
+version = "0.37.5"
+criteria = "safe-to-deploy"
+
+[[exemptions.r-efi]]
+version = "5.2.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.rss]]
+version = "2.0.12"
+criteria = "safe-to-deploy"
+
+[[exemptions.rustls-pemfile]]
+version = "2.2.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.schannel]]
+version = "0.1.27"
+criteria = "safe-to-deploy"
+
+[[exemptions.secrecy]]
+version = "0.10.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.security-framework]]
+version = "2.11.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.security-framework-sys]]
+version = "2.14.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.serde_urlencoded]]
+version = "0.7.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.smallvec]]
+version = "1.15.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.socket2]]
+version = "0.5.9"
+criteria = "safe-to-deploy"
+
+[[exemptions.sync_wrapper]]
+version = "1.0.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.synstructure]]
+version = "0.13.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.system-configuration]]
+version = "0.6.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.system-configuration-sys]]
+version = "0.6.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.tempfile]]
+version = "3.20.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.tinystr]]
+version = "0.8.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.tokio-rustls]]
+version = "0.26.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.tower-http]]
+version = "0.6.4"
+criteria = "safe-to-deploy"
+
+[[exemptions.tower-layer]]
+version = "0.3.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.tower-service]]
+version = "0.3.3"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing]]
+version = "0.1.41"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-attributes]]
+version = "0.1.28"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-core]]
+version = "0.1.33"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-log]]
+version = "0.2.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-subscriber]]
+version = "0.3.19"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-test]]
+version = "0.2.5"
+criteria = "safe-to-run"
+
+[[exemptions.tracing-test-macro]]
+version = "0.2.5"
+criteria = "safe-to-run"
+
+[[exemptions.uncased]]
+version = "0.9.10"
+criteria = "safe-to-deploy"
+
+[[exemptions.uuid]]
+version = "1.16.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.version_check]]
+version = "0.9.5"
+criteria = "safe-to-deploy"
+
+[[exemptions.wasm-bindgen]]
+version = "0.2.100"
+criteria = "safe-to-deploy"
+
+[[exemptions.wasm-bindgen-futures]]
+version = "0.4.50"
+criteria = "safe-to-deploy"
+
+[[exemptions.wasm-bindgen-macro]]
+version = "0.2.100"
+criteria = "safe-to-deploy"
+
+[[exemptions.web-sys]]
+version = "0.3.77"
+criteria = "safe-to-deploy"
+
+[[exemptions.winapi]]
+version = "0.3.9"
+criteria = "safe-to-deploy"
+
+[[exemptions.winapi-i686-pc-windows-gnu]]
+version = "0.4.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.winapi-x86_64-pc-windows-gnu]]
+version = "0.4.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.yansi]]
+version = "1.0.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.zerotrie]]
+version = "0.2.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.zerovec]]
+version = "0.11.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.zerovec-derive]]
+version = "0.11.1"
+criteria = "safe-to-deploy"
