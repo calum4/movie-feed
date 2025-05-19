@@ -29,6 +29,7 @@ pub struct MovieCast {
     pub release_date: Option<NaiveDate>,
     pub overview: String,
     pub original_language: String,
+    pub credit_id: String,
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -44,6 +45,7 @@ pub struct TvCast {
     pub first_air_date: Option<NaiveDate>,
     pub overview: String,
     pub original_language: String,
+    pub credit_id: String,
 }
 
 pub(super) fn deserialize_movie_genre<'de, D>(deserializer: D) -> Result<Vec<MovieGenre>, D::Error>
@@ -154,6 +156,7 @@ mod tests {
             release_date: NaiveDate::parse_from_str("2015-09-17", "%Y-%m-%d").ok(),
             overview: "An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string(),
             original_language: "en".to_string(),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 
@@ -167,6 +170,7 @@ mod tests {
             first_air_date: NaiveDate::parse_from_str("2017-11-17", "%Y-%m-%d").ok(),
             overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),
             original_language: "en".to_string(),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 

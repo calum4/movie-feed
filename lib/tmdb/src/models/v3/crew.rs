@@ -34,6 +34,7 @@ pub struct MovieCrew {
     pub release_date: Option<NaiveDate>,
     pub overview: String,
     pub original_language: String,
+    pub credit_id: String,
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -50,6 +51,7 @@ pub struct TvCrew {
     pub first_air_date: Option<NaiveDate>,
     pub overview: String,
     pub original_language: String,
+    pub credit_id: String,
 }
 
 impl IsCredit for MovieCrew {}
@@ -103,6 +105,7 @@ mod tests {
             release_date: None,
             overview: "The sequel to the 2024 reboot.".to_string(),
             original_language: "en".to_string(),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 
@@ -117,6 +120,7 @@ mod tests {
             first_air_date: NaiveDate::parse_from_str("2024-03-07", "%Y-%m-%d").ok(),
             overview: "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere.".to_string(),
             original_language: "en".to_string(),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 
