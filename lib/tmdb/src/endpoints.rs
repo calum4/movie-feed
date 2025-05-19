@@ -1,89 +1,68 @@
-use crate::{API_HOST, API_VERSION, Tmdb};
+use crate::api_version::ApiVersion;
+use crate::{DEFAULT_API_URL, Tmdb};
 use reqwest::{Method, Response};
 use std::fmt::Display;
+use url::ParseError;
 
 pub mod v3;
 
-#[cfg(not(any(test, feature = "use_prebaked_responses")))]
+#[derive(thiserror::Error, Debug)]
+pub enum RequestError {
+    #[error("reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+    #[error("url parsing error: {0}")]
+    UrlParseError(#[from] ParseError),
+}
+
 pub(crate) async fn request<P: AsRef<str> + Display>(
     tmdb: &Tmdb,
     path: P,
     method: Method,
-) -> Result<Response, reqwest::Error> {
+) -> Result<Response, RequestError> {
     use secrecy::ExposeSecret;
 
-    let url = format!("https://{API_HOST}/{API_VERSION}/{path}");
+    let url = tmdb
+        .api_url
+        .join(ApiVersion::V3.base_path())
+        .and_then(|url| url.join(path.as_ref()))?;
+
+    if url.as_str().starts_with(DEFAULT_API_URL.as_str()) {
+        panic!("REMOTE REQUEST {url}"); // TODO - REMOVE
+    }
 
     tmdb.http_client
         .request(method, url)
         .bearer_auth(tmdb.token.expose_secret())
         .send()
         .await
-}
-
-#[cfg(any(test, feature = "use_prebaked_responses"))]
-pub(crate) async fn request<P: AsRef<str> + Display>(
-    _tmdb: &Tmdb,
-    path: P,
-    method: Method,
-) -> Result<Response, reqwest::Error> {
-    use http::response::Builder;
-    use reqwest::{ResponseBuilderExt, Url};
-    use std::fs::read_to_string;
-    use tracing::warn;
-
-    const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
-
-    warn!("using pre-baked responses!");
-
-    let url = Url::parse(format!("https://{API_HOST}/{API_VERSION}/{path}").as_str()).unwrap();
-    let path = format!(
-        "{MANIFEST_DIR}/response_files{}/{}.json",
-        url.path(),
-        method.as_str()
-    );
-
-    let body = match read_to_string(path.as_str()) {
-        Ok(body) => body,
-        Err(error) => {
-            panic!(r#"unable to open response file with path "{path}", error: {error}"#);
-        }
-    };
-
-    let response = Builder::new()
-        .status(200)
-        .url(url.clone())
-        .body(body)
-        .unwrap();
-
-    Ok(Response::from(response))
+        .map_err(RequestError::Reqwest)
 }
 
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use tracing_test::traced_test;
+    use http::StatusCode;
+    use tmdb_test_utils::api::misc::status_codes::mock_get_ok;
+    use tmdb_test_utils::mockito::{Mock, ServerGuard};
+    use tmdb_test_utils::start_mock_tmdb_api;
+
+    async fn init() -> (Tmdb, ServerGuard, Mock, String) {
+        let mut server = start_mock_tmdb_api().await;
+        let (mock, path) = mock_get_ok(&mut server).await;
+
+        let mut tmdb = Tmdb::default();
+        tmdb.override_api_url(server.url().as_str()).unwrap();
+
+        (tmdb, server, mock, path)
+    }
 
     #[tokio::test]
-    #[traced_test]
     async fn test_request() {
-        let tmdb = Tmdb::default();
+        let (tmdb, _server, mock, path) = init().await;
 
-        #[derive(serde::Deserialize)]
-        struct Body {
-            filename: String,
-            date: String,
-        }
+        let response = request(&tmdb, path, Method::GET).await.unwrap();
 
-        let body: Body = request(&tmdb, "tests/", Method::GET)
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-
-        assert_eq!(body.filename.as_str(), "GET.json");
-        assert_eq!(body.date.as_str(), "2025-05-06");
-        assert!(logs_contain("using pre-baked responses!"));
+        assert_eq!(response.status(), StatusCode::OK);
+        mock.assert();
     }
 }

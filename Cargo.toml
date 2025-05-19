@@ -21,6 +21,7 @@ movie-feed = {path = "lib/movie-feed"}
 serde-utils = {path = "lib/serde-utils"}
 tmdb = {path = "lib/tmdb"}
 tmdb-macros = {path = "lib/tmdb-macros"}
+tmdb-test-utils = {path = "lib/tmdb-test-utils"}
 
 # Non-local crates
 tokio = {version = "1.44.2", features = ["rt", "rt-multi-thread", "macros"]}
@@ -35,7 +36,6 @@ thiserror = {version = "2.0.12", features = []}
 http = {version = "1.3.1", features = []}
 
 # Dev-dependencies
-tracing-test = {version = "0.2.5", features = []}
 static_assertions = {version = "1.1.0", features = []}
 
 [workspace.lints.rust]

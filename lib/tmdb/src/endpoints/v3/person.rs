@@ -1,5 +1,5 @@
 use crate::Tmdb;
-use crate::endpoints::request;
+use crate::endpoints::{RequestError, request};
 use crate::models::v3::person_details::PersonDetails;
 use reqwest::Method;
 
@@ -8,14 +8,18 @@ pub mod combined_credits;
 /// [GET: Person Details](https://developer.themoviedb.org/reference/person-details)
 ///
 /// Performs a get request on the `person/{person_id}` endpoint.
-pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, reqwest::Error> {
+pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, RequestError> {
     let path = format!("person/{person_id}");
 
     let response: reqwest::Response = request(tmdb, path, Method::GET).await?;
 
     dbg!(response.status());
+    // TODO - Investigate status
 
-    response.json::<PersonDetails>().await
+    response
+        .json::<PersonDetails>()
+        .await
+        .map_err(RequestError::Reqwest)
 }
 
 #[cfg(test)]
@@ -23,6 +27,19 @@ mod tests {
     use super::*;
     use crate::models::v3::gender::Gender;
     use chrono::NaiveDate;
+    use tmdb_test_utils::api::v3::person::mock_get_person_details;
+    use tmdb_test_utils::mockito::{Mock, ServerGuard};
+    use tmdb_test_utils::start_mock_tmdb_api;
+
+    async fn init(person_id: i32) -> (Tmdb, ServerGuard, Mock) {
+        let mut server = start_mock_tmdb_api().await;
+        let mock = mock_get_person_details(&mut server, person_id).await;
+
+        let mut tmdb = Tmdb::default();
+        tmdb.override_api_url(server.url().as_str()).unwrap();
+
+        (tmdb, server, mock)
+    }
 
     #[tokio::test]
     async fn test_get_19498() {
@@ -31,8 +48,7 @@ mod tests {
 
 His film roles include Snitch (2013), The Wolf of Wall Street (2013), Fury (2014), Sicario (2015), The Accountant (2016), Baby Driver (2017), Wind River (2017), Widows (2018), Ford v Ferrari (2019), Those Who Wish Me Dead (2021), King Richard (2021), The Many Saints of Newark (2021), Origin (2023), and The Accountant 2 (2025)."#;
 
-        let tmdb = Tmdb::default();
-
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
         let response = get(&tmdb, PERSON_ID).await.unwrap();
 
         assert!(!response.adult);
@@ -67,6 +83,8 @@ His film roles include Snitch (2013), The Wolf of Wall Street (2013), Fury (2014
             response.profile_path,
             Some("/o0t6EVkJOrFAjESDilZUlf46IbQ.jpg".to_string())
         );
+
+        mock.assert();
     }
 
     #[tokio::test]
@@ -80,8 +98,7 @@ His other directed films include The Man from U.N.C.L.E. (2015), based on the�
 
 Description above from the Wikipedia article Guy Ritchie, licensed under CC-BY-SA, full list of contributors on Wikipedia."#;
 
-        let tmdb = Tmdb::default();
-
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
         let response = get(&tmdb, PERSON_ID).await.unwrap();
 
         assert!(!response.adult);
@@ -120,5 +137,7 @@ Description above from the Wikipedia article Guy Ritchie, licensed under CC-BY-S
             response.profile_path,
             Some("/9pLUnjMgIEWXi0mlHYzie9cKUTD.jpg".to_string())
         );
+
+        mock.assert();
     }
 }

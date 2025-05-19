@@ -1,5 +1,5 @@
 use crate::Tmdb;
-use crate::endpoints::request;
+use crate::endpoints::{RequestError, request};
 use crate::models::v3::cast::Cast;
 use crate::models::v3::crew::Crew;
 use reqwest::Method;
@@ -23,12 +23,15 @@ pub struct CombinedCredits {
 /// ## NOTE
 /// The CombinedCredits struct is not an exhaustive representation of the data provided by
 /// the api.
-pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, reqwest::Error> {
+pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, RequestError> {
     let path = format!("person/{person_id}/combined_credits");
 
     let response = request(tmdb, path, Method::GET).await?;
 
-    response.json::<CombinedCredits>().await
+    response
+        .json::<CombinedCredits>()
+        .await
+        .map_err(RequestError::Reqwest)
 }
 
 #[cfg(test)]
@@ -36,14 +39,28 @@ mod tests {
     use super::*;
     use crate::models::v3::genres::{MovieGenre, TvGenre};
     use chrono::NaiveDate;
+    use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
+    use tmdb_test_utils::mockito::{Mock, ServerGuard};
+    use tmdb_test_utils::start_mock_tmdb_api;
+
+    async fn init(person_id: &str) -> (Tmdb, ServerGuard, Mock) {
+        let mut server = start_mock_tmdb_api().await;
+        let mock = mock_get_person_combined_credits(&mut server, person_id).await;
+
+        let mut tmdb = Tmdb::default();
+        tmdb.override_api_url(server.url().as_str()).unwrap();
+
+        (tmdb, server, mock)
+    }
 
     #[tokio::test]
     async fn test_get_19498_cast() {
         const PERSON_ID: &str = "19498";
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
 
-        let tmdb = Tmdb::default();
-
-        let response = get(&tmdb, PERSON_ID).await.unwrap();
+        let response = get(&tmdb, PERSON_ID).await;
+        mock.assert();
+        let response = response.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
 
         let cast = response.cast;
@@ -95,26 +112,28 @@ mod tests {
             "A father recounts to his children - through a series of flashbacks - the journey he and his four best friends took leading up to him meeting their mother."
         );
         assert_eq!(tv.original_language, "en");
+
+        mock.assert();
     }
 
     #[tokio::test]
     async fn test_get_19498_no_cast_credits() {
         const PERSON_ID: &str = "19498-no-cast-credits";
-
-        let tmdb = Tmdb::default();
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), "19498");
 
         assert_eq!(response.cast.len(), 0);
         assert_eq!(response.crew.len(), 3);
+
+        mock.assert();
     }
 
     #[tokio::test]
     async fn test_get_956_crew() {
         const PERSON_ID: &str = "956";
-
-        let tmdb = Tmdb::default();
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), PERSON_ID);
@@ -175,18 +194,21 @@ mod tests {
             "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere."
         );
         assert_eq!(tv.original_language, "en");
+
+        mock.assert();
     }
 
     #[tokio::test]
     async fn test_get_956_no_crew_credits() {
         const PERSON_ID: &str = "956-no-crew-credits";
-
-        let tmdb = Tmdb::default();
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id.to_string(), "956");
 
         assert_eq!(response.cast.len(), 13);
         assert_eq!(response.crew.len(), 0);
+
+        mock.assert();
     }
 }

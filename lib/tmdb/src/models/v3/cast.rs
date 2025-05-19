@@ -4,6 +4,7 @@ use crate::models::v3::genres::{MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
+use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
@@ -111,26 +112,30 @@ impl MediaTypeDefinition for TvCast {
 }
 
 pub trait MediaPageUrl<T: MediaTypeDefinition = Self> {
-    fn tmdb_media_url(&self) -> String;
+    fn tmdb_media_url(&self) -> Url;
 }
 
 impl MediaPageUrl for MovieCast {
-    fn tmdb_media_url(&self) -> String {
+    fn tmdb_media_url(&self) -> Url {
         let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
-        format!("{SITE_URL}/{media_url_prefix}/{}", self.id)
+        SITE_URL
+            .join(format!("/{media_url_prefix}/{}", self.id).as_str())
+            .expect("url guaranteed to be valid")
     }
 }
 
 impl MediaPageUrl for TvCast {
-    fn tmdb_media_url(&self) -> String {
+    fn tmdb_media_url(&self) -> Url {
         let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
             "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
         );
 
-        format!("{SITE_URL}/{media_url_prefix}/{}", self.id)
+        SITE_URL
+            .join(format!("{media_url_prefix}/{}", self.id).as_str())
+            .expect("url guaranteed to be valid")
     }
 }
 
@@ -189,7 +194,7 @@ mod tests {
     fn test_movie_cast_tmdb_media_url() {
         let cast = init_movie_cast();
         assert_eq!(
-            cast.tmdb_media_url(),
+            cast.tmdb_media_url().as_str(),
             "https://www.themoviedb.org/movie/273481"
         );
     }
@@ -197,6 +202,9 @@ mod tests {
     #[test]
     fn test_tv_cast_tmdb_media_url() {
         let cast = init_tv_cast();
-        assert_eq!(cast.tmdb_media_url(), "https://www.themoviedb.org/tv/67178");
+        assert_eq!(
+            cast.tmdb_media_url().as_str(),
+            "https://www.themoviedb.org/tv/67178"
+        );
     }
 }

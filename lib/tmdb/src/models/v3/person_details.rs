@@ -1,7 +1,8 @@
-use crate::SITE_URL;
 use crate::models::v3::gender::Gender;
+use crate::{IMDB_SITE_URL, SITE_URL};
 use chrono::NaiveDate;
 use serde::Deserialize;
+use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize)]
@@ -28,14 +29,18 @@ pub struct PersonDetails {
 }
 
 impl PersonDetails {
-    pub fn tmdb_url(&self) -> String {
-        format!("{SITE_URL}/person/{}", self.id)
+    pub fn tmdb_url(&self) -> Url {
+        SITE_URL
+            .join(format!("person/{}", self.id).as_str())
+            .expect("url should always be valid")
     }
 
-    pub fn imdb_url(&self) -> Option<String> {
-        self.imdb_id
-            .as_ref()
-            .map(|id| format!("https://www.imdb.com/name/{id}"))
+    pub fn imdb_url(&self) -> Option<Url> {
+        self.imdb_id.as_ref().map(|id| {
+            IMDB_SITE_URL
+                .join(format!("/name/{id}").as_str())
+                .expect("url should always be valid")
+        })
     }
 }
 
@@ -72,8 +77,8 @@ mod tests {
     fn test_tmdb_url() {
         let details = init();
         assert_eq!(
-            details.tmdb_url(),
-            "https://www.themoviedb.org/person/19498".to_string()
+            details.tmdb_url().as_str(),
+            "https://www.themoviedb.org/person/19498"
         );
     }
 
@@ -81,8 +86,8 @@ mod tests {
     fn test_imdb_url() {
         let details = init();
         assert_eq!(
-            details.imdb_url(),
-            Some("https://www.imdb.com/name/nm1256532".to_string())
+            details.imdb_url().unwrap().as_str(),
+            "https://www.imdb.com/name/nm1256532"
         );
     }
 }

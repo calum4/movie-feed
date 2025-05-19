@@ -20,10 +20,10 @@ mod get {
     use std::cmp::Ordering;
     use std::sync::Arc;
     use std::time::Duration;
-    use tmdb::endpoints::person::combined_credits::get as get_combined_credits;
-    use tmdb::endpoints::person::get as get_person_details;
-    use tmdb::models::cast::{Cast, IsCredit, MediaPageUrl, MediaTypeDefinition};
-    use tmdb::models::crew::Crew;
+    use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
+    use tmdb::endpoints::v3::person::get as get_person_details;
+    use tmdb::models::v3::cast::{Cast, IsCredit, MediaPageUrl, MediaTypeDefinition};
+    use tmdb::models::v3::crew::Crew;
     use tracing::warn;
 
     const TTL: Duration = Duration::from_secs(60 * 60); // 60 minutes
@@ -117,7 +117,7 @@ mod get {
                         credit.overview
                     );
 
-                    item.link(credit.tmdb_media_url())
+                    item.link(credit.tmdb_media_url().to_string())
                         .guid(guid(credit.id, "Actor", &credit))
                         .title(credit.title)
                         .description(description);
@@ -131,7 +131,7 @@ mod get {
                         credit.overview
                     );
 
-                    item.link(credit.tmdb_media_url())
+                    item.link(credit.tmdb_media_url().to_string())
                         .guid(guid(credit.id, "Actor", &credit))
                         .title(credit.name)
                         .description(description);
@@ -146,7 +146,7 @@ mod get {
                         credit.overview
                     );
 
-                    item.link(credit.tmdb_media_url())
+                    item.link(credit.tmdb_media_url().to_string())
                         .guid(guid(credit.id, credit.job.as_str(), &credit))
                         .title(credit.title)
                         .description(description);
@@ -161,7 +161,7 @@ mod get {
                         credit.overview
                     );
 
-                    item.link(credit.tmdb_media_url())
+                    item.link(credit.tmdb_media_url().to_string())
                         .guid(guid(credit.id, credit.job.as_str(), &credit))
                         .title(credit.name)
                         .description(description);
@@ -198,10 +198,8 @@ mod get {
         use super::*;
         use axum::body::HttpBody;
         use tmdb::Tmdb;
-        use tracing_test::traced_test;
 
         #[tokio::test]
-        #[traced_test]
         async fn test_get() {
             let api_state = ApiState {
                 tmdb: Tmdb::default(),
@@ -221,8 +219,6 @@ mod get {
             let test = String::from_utf8_lossy(bytes.as_ref());
 
             dbg!(test);
-
-            //assert!(logs_contain("using pre-baked responses!")); // TODO - why is this not working?
         }
 
         #[test]

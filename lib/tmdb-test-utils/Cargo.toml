@@ -1,0 +1,26 @@
+[package]
+name = "tmdb-test-utils"
+description = "Test utils for the tmdb crate"
+repository = "https://github.com/calum4/movie-feed/tree/main/lib/tmdb-test-utils"
+publish = false
+version = "0.0.0"
+
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+
+[dependencies]
+# Workspace
+tmdb = {workspace = true}
+http = {workspace = true}
+
+# Remote
+mockito = {version = "1.7.0", features = []}
+
+[dev-dependencies]
+tokio = {workspace = true}
+reqwest = {workspace = true}
+
+[lints]
+workspace = true
