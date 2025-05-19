@@ -18,18 +18,19 @@ mod get {
     use itertools::Itertools;
     use rss::{ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use std::cmp::Ordering;
+    use std::hash::{DefaultHasher, Hash, Hasher};
     use std::sync::Arc;
     use std::time::Duration;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
     use tmdb::endpoints::v3::person::get as get_person_details;
-    use tmdb::models::v3::cast::{Cast, IsCredit, MediaPageUrl, MediaTypeDefinition};
+    use tmdb::models::v3::cast::{Cast, MediaPageUrl};
     use tmdb::models::v3::crew::Crew;
     use tracing::warn;
 
     const TTL: Duration = Duration::from_secs(60 * 60); // 60 minutes
     const SIZE: usize = 20;
 
-    #[derive(Debug)]
+    #[derive(Debug, Hash)]
     enum Credit {
         Cast(Cast),
         Crew(Crew),
@@ -56,19 +57,10 @@ mod get {
     }
 
     #[inline]
-    fn guid<T: IsCredit + MediaTypeDefinition>(
-        credit_id: usize,
-        job: &str,
-        credit: &T,
-    ) -> Option<Guid> {
-        let tmdb_url_prefix = credit
-            .media_type()
-            .tmdb_url_prefix()
-            .expect("guaranteed by tests to be Some(_)");
-
+    fn guid(credit_hash: u64) -> Option<Guid> {
         Some(
             GuidBuilder::default()
-                .value(format!("{tmdb_url_prefix}-{job}-{credit_id}"))
+                .value(credit_hash.to_string())
                 .permalink(true)
                 .build(),
         )
@@ -107,6 +99,12 @@ mod get {
         for credit in credits.into_iter().take(SIZE) {
             let mut item = ItemBuilder::default();
 
+            {
+                let mut hasher = DefaultHasher::new();
+                credit.hash(&mut hasher);
+                item.guid(guid(hasher.finish()));
+            }
+
             match credit {
                 Credit::Cast(Cast::Movie(credit)) => {
                     let description = format!(
@@ -118,7 +116,6 @@ mod get {
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
-                        .guid(guid(credit.id, "Actor", &credit))
                         .title(credit.title)
                         .description(description);
                 }
@@ -132,7 +129,6 @@ mod get {
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
-                        .guid(guid(credit.id, "Actor", &credit))
                         .title(credit.name)
                         .description(description);
                 }
@@ -147,7 +143,6 @@ mod get {
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
-                        .guid(guid(credit.id, credit.job.as_str(), &credit))
                         .title(credit.title)
                         .description(description);
                 }
@@ -162,7 +157,6 @@ mod get {
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
-                        .guid(guid(credit.id, credit.job.as_str(), &credit))
                         .title(credit.name)
                         .description(description);
                 }
