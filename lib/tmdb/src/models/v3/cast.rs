@@ -7,7 +7,7 @@ use serde::{Deserialize, Deserializer};
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 #[serde(tag = "media_type")]
 pub enum Cast {
     #[serde(rename = "movie")]
@@ -17,7 +17,7 @@ pub enum Cast {
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct MovieCast {
     pub id: usize,
     pub title: String,
@@ -33,7 +33,7 @@ pub struct MovieCast {
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct TvCast {
     pub id: usize,
     pub name: String,

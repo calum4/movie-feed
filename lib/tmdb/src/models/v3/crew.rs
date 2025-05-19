@@ -10,7 +10,7 @@ use serde::Deserialize;
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 #[serde(tag = "media_type")]
 pub enum Crew {
     #[serde(rename = "movie")]
@@ -21,7 +21,7 @@ pub enum Crew {
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct MovieCrew {
     pub id: usize,
     pub title: String,
@@ -38,7 +38,7 @@ pub struct MovieCrew {
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct TvCrew {
     pub id: usize,
     pub name: String,

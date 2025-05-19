@@ -75,7 +75,7 @@ pub fn make_genre(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         #[non_exhaustive]
         #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-        #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+        #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
         pub enum #enum_ident {
             #(#genre_idents,)*
             Unknown(usize),
