@@ -11,6 +11,10 @@ license.workspace = true
 readme.workspace = true
 
 [dependencies]
+serde = {workspace = true}
+
+[dev-dependencies]
+serde_json = {version = "1.0.140", features = []}
 
 [lints]
 workspace = true

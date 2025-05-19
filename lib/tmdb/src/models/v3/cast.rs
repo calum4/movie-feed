@@ -4,6 +4,7 @@ use crate::models::v3::genres::{MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
+use serde_utils::deserialize_potentially_empty_string;
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -22,7 +23,8 @@ pub struct MovieCast {
     pub id: usize,
     pub title: String,
     pub original_title: String,
-    pub character: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string")]
+    pub character: Option<String>,
     #[serde(deserialize_with = "deserialize_movie_genre", flatten)]
     pub genres: Vec<MovieGenre>,
     #[serde(deserialize_with = "deserialize_release_date")]
@@ -38,7 +40,8 @@ pub struct TvCast {
     pub id: usize,
     pub name: String,
     pub original_name: String,
-    pub character: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string")]
+    pub character: Option<String>,
     #[serde(deserialize_with = "deserialize_tv_genre", flatten)]
     pub genres: Vec<TvGenre>,
     #[serde(deserialize_with = "deserialize_release_date")]
@@ -151,7 +154,7 @@ mod tests {
             id: 273481,
             title: "Sicario".to_string(),
             original_title: "Sicario".to_string(),
-            character: "Ted".to_string(),
+            character: Some("Ted".to_string()),
             genres: vec![MovieGenre::Action, MovieGenre::Crime, MovieGenre::Thriller],
             release_date: NaiveDate::parse_from_str("2015-09-17", "%Y-%m-%d").ok(),
             overview: "An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string(),
@@ -165,7 +168,7 @@ mod tests {
             id: 67178,
             name: "Marvel's The Punisher".to_string(),
             original_name: "Marvel's The Punisher".to_string(),
-            character: "Frank Castle / Punisher".to_string(),
+            character: Some("Frank Castle / Punisher".to_string()),
             genres: vec![TvGenre::ActionAndAdventure, TvGenre::Crime, TvGenre::Drama],
             first_air_date: NaiveDate::parse_from_str("2017-11-17", "%Y-%m-%d").ok(),
             overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),

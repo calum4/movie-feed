@@ -111,7 +111,7 @@ mod get {
                 Credit::Cast(Cast::Movie(credit)) => {
                     let description = format!(
                         "Character: {}\nGenres: {}\nLanguage: {}\n\n{}",
-                        credit.character,
+                        credit.character.as_ref().map_or("TBA", |c| c.as_str()),
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
                         credit.overview
@@ -125,7 +125,7 @@ mod get {
                 Credit::Cast(Cast::Tv(credit)) => {
                     let description = format!(
                         "Character: {}\nGenres: {}\nLanguage: {}\n\n{}",
-                        credit.character,
+                        credit.character.as_ref().map_or("TBA", |c| c.as_str()),
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
                         credit.overview

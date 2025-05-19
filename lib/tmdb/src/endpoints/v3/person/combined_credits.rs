@@ -76,7 +76,7 @@ mod tests {
         assert_eq!(movie.id, 1852);
         assert_eq!(movie.title, "World Trade Center");
         assert_eq!(movie.original_title, "World Trade Center");
-        assert_eq!(movie.character, "Christopher Amoroso");
+        assert_eq!(movie.character.as_ref().unwrap(), "Christopher Amoroso");
         assert_eq!(
             movie.genres,
             [MovieGenre::Drama, MovieGenre::History, MovieGenre::Thriller]
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(tv.id, 1100);
         assert_eq!(tv.name, "How I Met Your Mother");
         assert_eq!(tv.original_name, "How I Met Your Mother");
-        assert_eq!(tv.character, "Carlos");
+        assert_eq!(tv.character.as_ref().unwrap(), "Carlos");
         assert_eq!(tv.genres, [TvGenre::Comedy]);
         assert_eq!(
             tv.first_air_date,
