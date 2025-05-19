@@ -38,7 +38,7 @@ mod tests {
             #[serde(deserialize_with = "deserialize_potentially_empty_string")]
             foo: Option<String>,
         }
-        
+
         let empty_string: Data = serde_json::from_str(r#"{"foo": ""}"#).unwrap();
         assert_eq!(empty_string.foo, None);
 

@@ -1,5 +1,5 @@
+use crate::Tmdb;
 use crate::api_version::ApiVersion;
-use crate::{DEFAULT_API_URL, Tmdb};
 use reqwest::{Method, Response};
 use std::fmt::Display;
 use url::ParseError;
