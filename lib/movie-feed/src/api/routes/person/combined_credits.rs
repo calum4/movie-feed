@@ -14,7 +14,7 @@ mod get {
     use axum::Extension;
     use axum::extract::Path;
     use axum::response::{IntoResponse, Response};
-    use chrono::{NaiveDate, Utc};
+    use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
     use itertools::Itertools;
     use rss::{ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use std::cmp::Ordering;
@@ -165,12 +165,22 @@ mod get {
             items.push(item.build());
         }
 
+        // Required in order for a deterministic output for unit testing
+        let build_date = if cfg!(test) {
+            let date = NaiveDate::from_ymd_opt(2025, 5, 19).unwrap();
+            let time = NaiveTime::from_hms_opt(16, 21, 44).unwrap();
+
+            DateTime::from_naive_utc_and_offset(NaiveDateTime::new(date, time), Utc)
+        } else {
+            Utc::now()
+        };
+
         let mut channel = ChannelBuilder::default();
 
         channel
             .title(format!("Combined Credits - {}", details.name))
             .link(details.tmdb_url())
-            .last_build_date(Utc::now().format("%a, %d %b %Y %H:%M %Z").to_string())
+            .last_build_date(build_date.format("%a, %d %b %Y %H:%M %Z").to_string())
             .generator(Some(
                 "Movie Feed <https://github.com/calum4/movie-feed/>".to_string(),
             ))
@@ -192,27 +202,51 @@ mod get {
         use super::*;
         use axum::body::HttpBody;
         use tmdb::Tmdb;
+        use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
+        use tmdb_test_utils::api::v3::person::mock_get_person_details;
+        use tmdb_test_utils::mockito::{Mock, ServerGuard};
+        use tmdb_test_utils::start_mock_tmdb_api;
+
+        async fn init(person_id: i32) -> (Tmdb, ServerGuard, (Mock, Mock)) {
+            let mut server = start_mock_tmdb_api().await;
+
+            let details_mock = mock_get_person_details(&mut server, person_id).await;
+            let credits_mock =
+                mock_get_person_combined_credits(&mut server, person_id.to_string().as_str()).await;
+
+            let mut tmdb = Tmdb::default();
+            tmdb.override_api_url(server.url().as_str()).unwrap();
+
+            (tmdb, server, (details_mock, credits_mock))
+        }
 
         #[tokio::test]
         async fn test_get() {
-            let api_state = ApiState {
-                tmdb: Tmdb::default(),
-            };
+            const PERSON_ID: i32 = 19498;
 
-            let a = combined_credits(Path(19498), Extension(Arc::new(api_state))).await;
-            let b = a.into_body();
+            let (tmdb, _server, (details_mock, credits_mock)) = init(PERSON_ID).await;
+
+            let api_state = ApiState { tmdb };
+
+            let body = combined_credits(Path(PERSON_ID), Extension(Arc::new(api_state)))
+                .await
+                .into_body();
 
             let size = {
-                let size = b.size_hint();
+                let size = body.size_hint();
                 usize::try_from(size.exact().unwrap_or(size.lower()))
             }
             .unwrap();
 
-            let bytes = axum::body::to_bytes(b, size).await.unwrap();
+            let bytes = axum::body::to_bytes(body, size).await.unwrap();
 
-            let test = String::from_utf8_lossy(bytes.as_ref());
+            assert_eq!(
+                String::from_utf8_lossy(bytes.as_ref()),
+                include_str!("../../../../tests/assets/api/person/get_combined_credits_19498.xml")
+            );
 
-            dbg!(test);
+            details_mock.assert();
+            credits_mock.assert();
         }
 
         #[test]
