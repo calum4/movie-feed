@@ -26,10 +26,6 @@ pub(crate) async fn request<P: AsRef<str> + Display>(
         .join(ApiVersion::V3.base_path())
         .and_then(|url| url.join(path.as_ref()))?;
 
-    if url.as_str().starts_with(DEFAULT_API_URL.as_str()) {
-        panic!("REMOTE REQUEST {url}"); // TODO - REMOVE
-    }
-
     tmdb.http_client
         .request(method, url)
         .bearer_auth(tmdb.token.expose_secret())
