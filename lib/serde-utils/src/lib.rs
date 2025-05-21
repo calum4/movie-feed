@@ -35,9 +35,12 @@ mod tests {
     fn test_deserialize_potentially_empty_string() {
         #[derive(Debug, Deserialize)]
         struct Data {
-            #[serde(deserialize_with = "deserialize_potentially_empty_string")]
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             foo: Option<String>,
         }
+
+        let non_existent: Data = serde_json::from_str(r#"{}"#).unwrap();
+        assert_eq!(non_existent.foo, None);
 
         let empty_string: Data = serde_json::from_str(r#"{"foo": ""}"#).unwrap();
         assert_eq!(empty_string.foo, None);
