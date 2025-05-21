@@ -7,6 +7,7 @@ use url::ParseError;
 pub mod v3;
 
 #[derive(thiserror::Error, Debug)]
+#[non_exhaustive]
 pub enum RequestError {
     #[error("reqwest error: {0}")]
     Reqwest(#[from] reqwest::Error),
