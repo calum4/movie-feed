@@ -88,6 +88,10 @@ mod tests {
             "Two police officers struggle to survive when they become trapped beneath the rubble of the World Trade Center on September 11, 2001."
         );
         assert_eq!(movie.original_language, "en");
+        assert_eq!(
+            movie.credit_id,
+            Some("52fe431bc3a36847f803a9db".to_string())
+        );
 
         let tv = match &cast[48] {
             Cast::Tv(cast) => cast,
@@ -110,6 +114,7 @@ mod tests {
             "A father recounts to his children - through a series of flashbacks - the journey he and his four best friends took leading up to him meeting their mother."
         );
         assert_eq!(tv.original_language, "en");
+        assert_eq!(tv.credit_id, Some("5256c6e119c2956ff602e49c".to_string()));
 
         mock.assert();
     }
@@ -169,6 +174,10 @@ mod tests {
             "Eccentric consulting detective Sherlock Holmes and Doctor John Watson battle to bring down a new nemesis and unravel a deadly plot that could destroy England."
         );
         assert_eq!(movie.original_language, "en");
+        assert_eq!(
+            movie.credit_id,
+            Some("52fe43809251416c75012e71".to_string())
+        );
 
         let tv = match &crew[59] {
             Crew::Tv(crew) => crew,
@@ -192,6 +201,7 @@ mod tests {
             "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere."
         );
         assert_eq!(tv.original_language, "en");
+        assert_eq!(tv.credit_id, Some("65df4747b76cbb017dd8ff39".to_string()));
 
         mock.assert();
     }
@@ -206,6 +216,43 @@ mod tests {
 
         assert_eq!(response.cast.len(), 13);
         assert_eq!(response.crew.len(), 0);
+
+        mock.assert();
+    }
+
+    #[tokio::test]
+    async fn test_get_5_cast() {
+        const PERSON_ID: &str = "5";
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
+
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+        assert_eq!(response.id, None);
+
+        let cast = response.cast;
+        assert_eq!(cast.len(), 13);
+
+        let movie = match &cast[12] {
+            Cast::Movie(cast) => cast,
+            Cast::Tv(_) => {
+                panic!("first cast entry should be a movie, was a tv show");
+            }
+        };
+
+        assert_eq!(movie.id, 11868);
+        assert_eq!(movie.title, "Dracula");
+        assert_eq!(movie.original_title, "Dracula");
+        assert_eq!(movie.character, None);
+        assert_eq!(movie.genres, [MovieGenre::Horror]);
+        assert_eq!(
+            movie.release_date,
+            Some(NaiveDate::parse_from_str("1958-04-21", "%Y-%m-%d").unwrap())
+        );
+        assert_eq!(
+            movie.overview,
+            "After Jonathan Harker attacks Dracula at his castle, the vampire travels to a nearby city, where he preys on the family of Harker's fiancée. The only one who may be able to protect them is Dr. van Helsing, Harker's friend and fellow-student of vampires, who is determined to destroy Dracula, whatever the cost."
+        );
+        assert_eq!(movie.original_language, "en");
+        assert_eq!(movie.credit_id, None);
 
         mock.assert();
     }
