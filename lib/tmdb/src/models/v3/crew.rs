@@ -9,6 +9,7 @@ use serde::{Deserialize, Deserializer};
 
 use crate::models::v3::genre_id::GenreId;
 use serde::de::Error as DeError;
+use serde_utils::deserialize_potentially_empty_string;
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -32,15 +33,20 @@ impl<'de> Deserialize<'de> for Crew {
             pub genre_ids: Vec<GenreId>,
             pub overview: String,
             pub original_language: String,
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             pub credit_id: Option<String>,
             pub media_type: Option<MediaType>,
             // Movie
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             pub title: Option<String>,
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             pub original_title: Option<String>,
             #[serde(deserialize_with = "deserialize_release_date", default)]
             pub release_date: Option<NaiveDate>,
             // Tv
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             pub name: Option<String>,
+            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
             pub original_name: Option<String>,
             #[serde(deserialize_with = "deserialize_release_date", default)]
             pub first_air_date: Option<NaiveDate>,
