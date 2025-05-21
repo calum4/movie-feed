@@ -102,7 +102,7 @@ mod tests {
         let tv = match &cast[48] {
             Cast::Tv(cast) => cast,
             Cast::Movie(_) => {
-                panic!("first cast entry should be a tv show, was a movie");
+                panic!("48th cast entry should be a tv show, was a movie");
             }
         };
 
@@ -153,7 +153,7 @@ mod tests {
         let movie = match &crew[7] {
             Crew::Movie(crew) => crew,
             Crew::Tv(_) => {
-                panic!("first crew entry should be a movie, was a tv show");
+                panic!("7th crew entry should be a movie, was a tv show");
             }
         };
 
@@ -188,7 +188,7 @@ mod tests {
         let tv = match &crew[59] {
             Crew::Tv(crew) => crew,
             Crew::Movie(_) => {
-                panic!("first crew entry should be a tv show, was a movie");
+                panic!("59th crew entry should be a tv show, was a movie");
             }
         };
 
@@ -242,7 +242,7 @@ mod tests {
         let movie = match &cast[12] {
             Cast::Movie(cast) => cast,
             Cast::Tv(_) => {
-                panic!("first cast entry should be a movie, was a tv show");
+                panic!("12th cast entry should be a movie, was a tv show");
             }
         };
 
