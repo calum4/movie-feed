@@ -133,4 +133,51 @@ mod tests {
 
         mock.assert();
     }
+
+    #[tokio::test]
+    async fn test_get_5() {
+        const PERSON_ID: i32 = 5;
+        const BIOGRAPHY: &str = include_str!("../../../tests/assets/api/person/5_biography.txt");
+
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+
+        assert!(!response.adult);
+        assert_eq!(
+            response.also_known_as,
+            vec![
+                "Peter Wilton Cushing",
+                "彼得·庫辛",
+                "Питер Кушинг",
+                "Питер Уилтон Кушинг",
+                "پیتر کوشینگ"
+            ]
+        );
+        assert_eq!(response.biography, Some(BIOGRAPHY.to_string()));
+        assert_eq!(
+            response.birthday,
+            NaiveDate::parse_from_str("1913-05-26", "%Y-%m-%d").ok()
+        );
+        assert_eq!(
+            response.deathday,
+            NaiveDate::parse_from_str("1994-08-11", "%Y-%m-%d").ok()
+        );
+        assert_eq!(response.gender, Gender::Male);
+        assert_eq!(response.homepage, None);
+        assert_eq!(response.id, PERSON_ID);
+        assert_eq!(response.imdb_id, Some("nm0001088".to_string()));
+        assert_eq!(response.known_for_department, "Acting");
+        assert_eq!(response.name, "Peter Cushing");
+        assert_eq!(
+            response.place_of_birth,
+            Some("Kenley, Surrey, England, UK".to_string())
+        );
+        assert_eq!(response.popularity, 3.6625);
+        assert_eq!(
+            response.profile_path,
+            Some("/if5g03wn6uvHx7F6FxXHLebKc0q.jpg".to_string())
+        );
+
+        mock.assert();
+    }
 }
