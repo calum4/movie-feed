@@ -15,8 +15,8 @@ mod get {
     use axum::extract::Path;
     use axum::response::{IntoResponse, Response};
     #[cfg(test)]
-    use chrono::NaiveTime;
-    use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
+    use chrono::{DateTime, NaiveDateTime, NaiveTime};
+    use chrono::{NaiveDate, Utc};
     use itertools::Itertools;
     use rss::{ChannelBuilder, Item, ItemBuilder};
     use std::cmp::Ordering;
