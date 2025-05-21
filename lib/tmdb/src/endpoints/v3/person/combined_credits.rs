@@ -85,7 +85,7 @@ mod tests {
         );
         assert_eq!(
             movie.overview,
-            "Two police officers struggle to survive when they become trapped beneath the rubble of the World Trade Center on September 11, 2001."
+            include_str!("../../../../tests/assets/api/person/combined_credits/1852_overview.txt")
         );
         assert_eq!(movie.original_language, "en");
         assert_eq!(
@@ -111,7 +111,7 @@ mod tests {
         );
         assert_eq!(
             tv.overview,
-            "A father recounts to his children - through a series of flashbacks - the journey he and his four best friends took leading up to him meeting their mother."
+            include_str!("../../../../tests/assets/api/person/combined_credits/1100_overview.txt")
         );
         assert_eq!(tv.original_language, "en");
         assert_eq!(tv.credit_id, Some("5256c6e119c2956ff602e49c".to_string()));
@@ -171,7 +171,7 @@ mod tests {
         );
         assert_eq!(
             movie.overview,
-            "Eccentric consulting detective Sherlock Holmes and Doctor John Watson battle to bring down a new nemesis and unravel a deadly plot that could destroy England."
+            include_str!("../../../../tests/assets/api/person/combined_credits/10528_overview.txt")
         );
         assert_eq!(movie.original_language, "en");
         assert_eq!(
@@ -198,7 +198,9 @@ mod tests {
         );
         assert_eq!(
             tv.overview,
-            "When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere."
+            include_str!(
+                "../../../../tests/assets/api/person/combined_credits/236235_overview.txt"
+            )
         );
         assert_eq!(tv.original_language, "en");
         assert_eq!(tv.credit_id, Some("65df4747b76cbb017dd8ff39".to_string()));
@@ -249,7 +251,7 @@ mod tests {
         );
         assert_eq!(
             movie.overview,
-            "After Jonathan Harker attacks Dracula at his castle, the vampire travels to a nearby city, where he preys on the family of Harker's fiancée. The only one who may be able to protect them is Dr. van Helsing, Harker's friend and fellow-student of vampires, who is determined to destroy Dracula, whatever the cost."
+            include_str!("../../../../tests/assets/api/person/combined_credits/11868_overview.txt")
         );
         assert_eq!(movie.original_language, "en");
         assert_eq!(movie.credit_id, None);
