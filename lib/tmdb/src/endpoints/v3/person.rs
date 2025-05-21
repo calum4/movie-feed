@@ -80,7 +80,7 @@ mod tests {
             response.place_of_birth,
             Some("Washington, D.C., USA".to_string())
         );
-        assert_eq!(response.popularity, 10.3331);
+        assert_eq!(response.popularity, 11.5636);
         assert_eq!(
             response.profile_path,
             Some("/o0t6EVkJOrFAjESDilZUlf46IbQ.jpg".to_string())
@@ -128,7 +128,7 @@ mod tests {
             response.place_of_birth,
             Some("Hatfield, Hertfordshire, England, UK".to_string())
         );
-        assert_eq!(response.popularity, 5.5305);
+        assert_eq!(response.popularity, 6.5548);
         assert_eq!(
             response.profile_path,
             Some("/9pLUnjMgIEWXi0mlHYzie9cKUTD.jpg".to_string())
@@ -175,7 +175,7 @@ mod tests {
             response.place_of_birth,
             Some("Kenley, Surrey, England, UK".to_string())
         );
-        assert_eq!(response.popularity, 3.6625);
+        assert_eq!(response.popularity, 4.34);
         assert_eq!(
             response.profile_path,
             Some("/if5g03wn6uvHx7F6FxXHLebKc0q.jpg".to_string())

@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(response.id, Some(19498));
 
         let cast = response.cast;
-        assert_eq!(cast.len(), 75);
+        assert_eq!(cast.len(), 79);
 
         let movie = match &cast[0] {
             Cast::Movie(cast) => cast,
@@ -99,7 +99,7 @@ mod tests {
             Some("52fe431bc3a36847f803a9db".to_string())
         );
 
-        let tv = match &cast[48] {
+        let tv = match &cast[50] {
             Cast::Tv(cast) => cast,
             Cast::Movie(_) => {
                 panic!("48th cast entry should be a tv show, was a movie");
@@ -234,10 +234,10 @@ mod tests {
         let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
-        assert_eq!(response.id, None);
+        assert_eq!(response.id, Some(5));
 
         let cast = response.cast;
-        assert_eq!(cast.len(), 13);
+        assert_eq!(cast.len(), 139);
 
         let movie = match &cast[12] {
             Cast::Movie(cast) => cast,
@@ -249,7 +249,7 @@ mod tests {
         assert_eq!(movie.id, 11868);
         assert_eq!(movie.title, "Dracula");
         assert_eq!(movie.original_title, "Dracula");
-        assert_eq!(movie.character, None);
+        assert_eq!(movie.character, Some("Doctor Van Helsing".to_string()));
         assert_eq!(movie.genres, [MovieGenre::Horror]);
         assert_eq!(
             movie.release_date,
@@ -260,7 +260,7 @@ mod tests {
             include_str!("../../../../tests/assets/api/person/combined_credits/11868_overview.txt")
         );
         assert_eq!(movie.original_language, "en");
-        assert_eq!(movie.credit_id, None);
+        assert_eq!(movie.credit_id, Some("52fe44969251416c7503a173".to_string()));
 
         mock.assert();
     }
