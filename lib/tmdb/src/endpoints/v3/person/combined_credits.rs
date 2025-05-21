@@ -260,7 +260,10 @@ mod tests {
             include_str!("../../../../tests/assets/api/person/combined_credits/11868_overview.txt")
         );
         assert_eq!(movie.original_language, "en");
-        assert_eq!(movie.credit_id, Some("52fe44969251416c7503a173".to_string()));
+        assert_eq!(
+            movie.credit_id,
+            Some("52fe44969251416c7503a173".to_string())
+        );
 
         mock.assert();
     }
