@@ -18,7 +18,7 @@ pub fn deserialize_potentially_empty_string<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let str: &str = Deserialize::deserialize(deserializer)?;
+    let str: String = Deserialize::deserialize(deserializer)?;
 
     if str.is_empty() {
         return Ok(None);
