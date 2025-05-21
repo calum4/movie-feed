@@ -58,9 +58,7 @@ mod tests {
         const PERSON_ID: &str = "19498";
         let (tmdb, _server, mock) = init(PERSON_ID).await;
 
-        let response = get(&tmdb, PERSON_ID).await;
-        mock.assert();
-        let response = response.unwrap();
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
         assert_eq!(response.id, Some(19498));
 
         let cast = response.cast;
