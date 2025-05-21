@@ -9,7 +9,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct CombinedCredits {
     #[serde(default)]
-    pub id: u64,
+    pub id: Option<u64>,
     #[serde(default)]
     pub cast: Vec<Cast>,
     #[serde(default)]
@@ -61,7 +61,7 @@ mod tests {
         let response = get(&tmdb, PERSON_ID).await;
         mock.assert();
         let response = response.unwrap();
-        assert_eq!(response.id.to_string(), PERSON_ID);
+        assert_eq!(response.id, Some(19498));
 
         let cast = response.cast;
         assert_eq!(cast.len(), 75);
@@ -122,7 +122,7 @@ mod tests {
         let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
-        assert_eq!(response.id.to_string(), "19498");
+        assert_eq!(response.id, Some(19498));
 
         assert_eq!(response.cast.len(), 0);
         assert_eq!(response.crew.len(), 3);
@@ -136,7 +136,7 @@ mod tests {
         let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
-        assert_eq!(response.id.to_string(), PERSON_ID);
+        assert_eq!(response.id, Some(956));
 
         let crew = response.crew;
         assert_eq!(crew.len(), 66);
@@ -204,7 +204,7 @@ mod tests {
         let (tmdb, _server, mock) = init(PERSON_ID).await;
 
         let response = get(&tmdb, PERSON_ID).await.unwrap();
-        assert_eq!(response.id.to_string(), "956");
+        assert_eq!(response.id, Some(956));
 
         assert_eq!(response.cast.len(), 13);
         assert_eq!(response.crew.len(), 0);
