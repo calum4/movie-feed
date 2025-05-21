@@ -1,6 +1,7 @@
 use crate::Tmdb;
 use crate::endpoints::{RequestError, request};
 use crate::models::v3::person_details::PersonDetails;
+use http::StatusCode;
 use reqwest::Method;
 
 pub mod combined_credits;
@@ -13,8 +14,10 @@ pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, RequestEr
 
     let response: reqwest::Response = request(tmdb, path, Method::GET).await?;
 
-    dbg!(response.status());
-    // TODO - Investigate status
+    match response.status() {
+        StatusCode::OK => (),
+        _ => return Err(RequestError::UnexpectedStatusCode(response.status())),
+    }
 
     response
         .json::<PersonDetails>()

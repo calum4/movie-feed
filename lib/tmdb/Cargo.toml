@@ -21,15 +21,12 @@ secrecy = {workspace = true}
 tmdb-macros = {workspace = true}
 serde-utils = {workspace = true}
 thiserror = {workspace = true}
+http = {workspace = true}
 
 # Remote
 url = {version = "2.5.4", features = []}
 
-# Optional
-http = {workspace = true, optional = true}
-
 [dev-dependencies]
-http = {workspace = true}
 static_assertions = {workspace = true}
 tmdb-test-utils = {workspace = true}
 
@@ -37,5 +34,5 @@ tmdb-test-utils = {workspace = true}
 workspace = true
 
 [features]
-test_utils = ["http"]
+test_utils = []
 serde_serialize = []

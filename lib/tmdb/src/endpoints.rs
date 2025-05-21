@@ -1,5 +1,6 @@
 use crate::Tmdb;
 use crate::api_version::ApiVersion;
+use http::StatusCode;
 use reqwest::{Method, Response};
 use std::fmt::Display;
 use url::ParseError;
@@ -13,6 +14,8 @@ pub enum RequestError {
     Reqwest(#[from] reqwest::Error),
     #[error("url parsing error: {0}")]
     UrlParseError(#[from] ParseError),
+    #[error("unexpected status code: {0:?}")]
+    UnexpectedStatusCode(StatusCode),
 }
 
 pub(crate) async fn request<P: AsRef<str> + Display>(

@@ -2,6 +2,7 @@ use crate::Tmdb;
 use crate::endpoints::{RequestError, request};
 use crate::models::v3::cast::Cast;
 use crate::models::v3::crew::Crew;
+use http::StatusCode;
 use reqwest::Method;
 use serde::Deserialize;
 
@@ -27,6 +28,11 @@ pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, Reques
     let path = format!("person/{person_id}/combined_credits");
 
     let response = request(tmdb, path, Method::GET).await?;
+
+    match response.status() {
+        StatusCode::OK => (),
+        _ => return Err(RequestError::UnexpectedStatusCode(response.status())),
+    }
 
     response
         .json::<CombinedCredits>()
