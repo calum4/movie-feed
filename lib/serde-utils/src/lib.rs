@@ -18,7 +18,12 @@ pub fn deserialize_potentially_empty_string<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let str: String = Deserialize::deserialize(deserializer)?;
+    let str: Option<String> = Deserialize::deserialize(deserializer)?;
+
+    let str = match str {
+        None => return Ok(None),
+        Some(str) => str,
+    };
 
     if str.is_empty() {
         return Ok(None);
@@ -41,6 +46,9 @@ mod tests {
 
         let non_existent: Data = serde_json::from_str(r#"{}"#).unwrap();
         assert_eq!(non_existent.foo, None);
+
+        let null: Data = serde_json::from_str(r#"{"foo": null}"#).unwrap();
+        assert_eq!(null.foo, None);
 
         let empty_string: Data = serde_json::from_str(r#"{"foo": ""}"#).unwrap();
         assert_eq!(empty_string.foo, None);
