@@ -80,15 +80,15 @@ pub(crate) fn make_genre(input: TokenStream) -> TokenStream {
             Unknown(usize),
         }
 
-        impl #enum_ident {
-            pub fn id(&self) -> crate::models::v3::genre_id::GenreId {
+        impl crate::models::v3::genres::Genre for #enum_ident {
+            fn id(&self) -> crate::models::v3::genre_id::GenreId {
                 match *self {
                     #(#enum_ident::#genre_idents => #genre_ids,)*
                     #enum_ident::Unknown(id) => id,
                 }.into()
             }
 
-            pub fn name(&self) -> &'static str {
+            fn name(&self) -> &'static str {
                 match self {
                     #(Self::#genre_idents => #genre_names,)*
                     Self::Unknown(_) => "Unknown Genre",

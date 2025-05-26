@@ -1,5 +1,11 @@
+use crate::models::v3::genre_id::GenreId;
 use std::fmt::{Debug, Display, Formatter};
 use tmdb_macros::make_genre;
+
+pub trait Genre {
+    fn id(&self) -> GenreId;
+    fn name(&self) -> &'static str;
+}
 
 make_genre!(
     MovieGenre,
