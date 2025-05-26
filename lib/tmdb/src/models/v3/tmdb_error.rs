@@ -49,6 +49,18 @@ macro_rules! construct_tmdb_error {
                 }
             }
 
+            pub fn status_code(&self) -> StatusCode {
+                match self {
+                    $(Self::$variant => StatusCode::$status,)*
+                }
+            }
+
+            pub const fn tmdb_error_code(&self) -> TmdbErrorCode {
+                match self {
+                    $(Self::$variant => TmdbErrorCode($code),)*
+                }
+            }
+
             #[allow(unreachable_patterns)]
             pub const fn hint_valid_status_code(status_code: StatusCode) -> bool {
                 match status_code {
