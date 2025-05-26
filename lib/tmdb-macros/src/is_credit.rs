@@ -76,12 +76,12 @@ pub(crate) fn is_credit(input: proc_macro::TokenStream) -> proc_macro::TokenStre
             }
 
             #[inline]
-            fn genres(&self) -> Vec<&dyn Genre> {
+            fn genres(&self) -> Vec<&dyn crate::models::v3::genres::Genre> {
                 #genres
             }
 
             #[inline]
-            fn release_date(&self) -> Option<&NaiveDate> {
+            fn release_date(&self) -> Option<&chrono::NaiveDate> {
                 #release_date
             }
 
@@ -101,7 +101,7 @@ pub(crate) fn is_credit(input: proc_macro::TokenStream) -> proc_macro::TokenStre
             }
 
             #[inline]
-            fn media_type(&self) -> MediaType {
+            fn media_type(&self) -> crate::models::v3::media_type::MediaType {
                 #media_type
             }
         }
