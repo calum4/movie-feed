@@ -25,7 +25,8 @@ mod get {
     use std::time::Duration;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
     use tmdb::endpoints::v3::person::get as get_person_details;
-    use tmdb::models::v3::cast::{Cast, MediaPageUrl};
+    use tmdb::models::v3::cast::Cast;
+    use tmdb::models::v3::credit::IsCredit;
     use tmdb::models::v3::crew::Crew;
     use tmdb::models::v3::genres::Genre;
     use tracing::warn;
@@ -64,7 +65,7 @@ mod get {
             }
         }
 
-        fn overview_size_hint(&self) -> Option<usize> {
+        fn overview_len(&self) -> Option<usize> {
             match self {
                 Credit::Cast(Cast::Movie(credit)) => {
                     credit.overview.as_ref().map(|overview| overview.len())
@@ -205,7 +206,7 @@ mod get {
             }
 
             let mut description = credit
-                .overview_size_hint()
+                .overview_len()
                 .map(String::with_capacity)
                 .unwrap_or(String::new());
 

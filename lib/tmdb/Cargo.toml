@@ -27,7 +27,6 @@ http = {workspace = true}
 url = {version = "2.5.4", features = []}
 
 [dev-dependencies]
-static_assertions = {workspace = true}
 tmdb-test-utils = {workspace = true}
 
 [lints]

@@ -1,4 +1,5 @@
 pub mod cast;
+pub mod credit;
 pub mod crew;
 pub mod gender;
 pub mod genre_id;

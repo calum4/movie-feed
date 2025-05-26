@@ -1,11 +1,10 @@
-use crate::SITE_URL;
+use crate::models::v3::credit::IsCredit;
 use crate::models::v3::genre_id::GenreId;
-use crate::models::v3::genres::{MovieGenre, TvGenre};
+use crate::models::v3::genres::{Genre, MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
 use serde_utils::deserialize_potentially_empty_string;
-use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Hash)]
@@ -103,60 +102,81 @@ where
     Ok(NaiveDate::parse_from_str(date.as_str(), "%Y-%m-%d").ok())
 }
 
-pub trait IsCredit {}
-
-impl IsCredit for MovieCast {}
-impl IsCredit for TvCast {}
-
-pub trait MediaTypeDefinition {
-    const MEDIA_TYPE: MediaType;
-
-    #[inline]
-    fn media_type(&self) -> MediaType {
-        Self::MEDIA_TYPE
-    }
-}
-
-impl MediaTypeDefinition for MovieCast {
+impl IsCredit for MovieCast {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
-}
 
-impl MediaTypeDefinition for TvCast {
-    const MEDIA_TYPE: MediaType = MediaType::Tv;
-}
+    fn id(&self) -> usize {
+        self.id
+    }
 
-pub trait MediaPageUrl<T: MediaTypeDefinition = Self> {
-    fn tmdb_media_url(&self) -> Url;
-}
+    fn title(&self) -> &str {
+        self.title.as_str()
+    }
 
-impl MediaPageUrl for MovieCast {
-    fn tmdb_media_url(&self) -> Url {
-        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
-            "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
-        );
+    fn original_title(&self) -> &str {
+        self.original_language.as_str()
+    }
 
-        SITE_URL
-            .join(format!("/{media_url_prefix}/{}", self.id).as_str())
-            .expect("url guaranteed to be valid")
+    fn genres(&self) -> &[impl Genre] {
+        &self.genres
+    }
+
+    fn release_date(&self) -> Option<&NaiveDate> {
+        self.release_date.as_ref()
+    }
+
+    fn original_language(&self) -> &str {
+        self.original_language.as_str()
+    }
+
+    fn overview(&self) -> Option<&String> {
+        self.overview.as_ref()
+    }
+
+    fn credit_id(&self) -> &str {
+        self.credit_id.as_str()
     }
 }
 
-impl MediaPageUrl for TvCast {
-    fn tmdb_media_url(&self) -> Url {
-        let media_url_prefix = Self::MEDIA_TYPE.tmdb_url_prefix().expect(
-            "Self::MEDIA_TYPE is const and is guaranteed by tests to always return Some(_)",
-        );
+impl IsCredit for TvCast {
+    const MEDIA_TYPE: MediaType = MediaType::Tv;
 
-        SITE_URL
-            .join(format!("{media_url_prefix}/{}", self.id).as_str())
-            .expect("url guaranteed to be valid")
+    fn id(&self) -> usize {
+        self.id
+    }
+
+    fn title(&self) -> &str {
+        self.name.as_str()
+    }
+
+    fn original_title(&self) -> &str {
+        self.original_language.as_str()
+    }
+
+    fn genres(&self) -> &[impl Genre] {
+        &self.genres
+    }
+
+    fn release_date(&self) -> Option<&NaiveDate> {
+        self.first_air_date.as_ref()
+    }
+
+    fn original_language(&self) -> &str {
+        self.original_language.as_str()
+    }
+
+    fn overview(&self) -> Option<&String> {
+        self.overview.as_ref()
+    }
+
+    fn credit_id(&self) -> &str {
+        self.credit_id.as_str()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use static_assertions::assert_impl_all;
 
     fn init_movie_cast() -> MovieCast {
         MovieCast {
@@ -184,16 +204,6 @@ mod tests {
             original_language: "en".to_string(),
             credit_id: "example-credit-id".to_string(),
         }
-    }
-
-    #[test]
-    fn test_movie_cast_traits() {
-        assert_impl_all!(MovieCast: IsCredit, MediaTypeDefinition, MediaPageUrl<MovieCast>);
-    }
-
-    #[test]
-    fn test_tv_cast_traits() {
-        assert_impl_all!(TvCast: IsCredit, MediaTypeDefinition, MediaPageUrl<TvCast>);
     }
 
     #[test]
