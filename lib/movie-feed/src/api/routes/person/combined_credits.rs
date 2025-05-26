@@ -27,6 +27,7 @@ mod get {
     use tmdb::endpoints::v3::person::get as get_person_details;
     use tmdb::models::v3::cast::{Cast, MediaPageUrl};
     use tmdb::models::v3::crew::Crew;
+    use tmdb::models::v3::genres::Genre;
     use tracing::warn;
 
     const TTL: Duration = Duration::from_secs(60 * 60); // 60 minutes
@@ -44,6 +45,7 @@ mod get {
     }
 
     impl Credit {
+        // TODO - traits for common properties?
         fn release_date(&self) -> &Option<NaiveDate> {
             match self {
                 Credit::Cast(Cast::Movie(movie)) => &movie.release_date,
@@ -60,6 +62,77 @@ mod get {
                 Credit::Crew(Crew::Movie(credit)) => credit.id,
                 Credit::Crew(Crew::Tv(credit)) => credit.id,
             }
+        }
+
+        fn overview_size_hint(&self) -> Option<usize> {
+            match self {
+                Credit::Cast(Cast::Movie(credit)) => {
+                    credit.overview.as_ref().map(|overview| overview.len())
+                }
+                Credit::Cast(Cast::Tv(credit)) => {
+                    credit.overview.as_ref().map(|overview| overview.len())
+                }
+                Credit::Crew(Crew::Movie(credit)) => {
+                    credit.overview.as_ref().map(|overview| overview.len())
+                }
+                Credit::Crew(Crew::Tv(credit)) => {
+                    credit.overview.as_ref().map(|overview| overview.len())
+                }
+            }
+        }
+    }
+
+    fn construct_cast_description(
+        description: &mut String,
+        character: Option<&String>,
+        genres: &[impl Genre],
+        original_language: &str,
+        overview: Option<&String>,
+    ) {
+        description.push_str("Character: ");
+        description.push_str(character.map_or("TBA", |c| c.as_str()));
+
+        construct_common_description(description, genres, original_language, overview);
+    }
+
+    fn construct_crew_description(
+        description: &mut String,
+        department: &str,
+        job: &str,
+        genres: &[impl Genre],
+        original_language: &str,
+        overview: Option<&String>,
+    ) {
+        description.push_str("Department: ");
+        description.push_str(department);
+
+        description.push_str("\nJob: ");
+        description.push_str(job);
+
+        construct_common_description(description, genres, original_language, overview);
+    }
+
+    fn construct_common_description(
+        description: &mut String,
+        genres: &[impl Genre],
+        original_language: &str,
+        overview: Option<&String>,
+    ) {
+        description.push_str("\nGenres: ");
+        genres.iter().enumerate().for_each(|(i, genre)| {
+            if i > 0 {
+                description.push_str(", ");
+            }
+
+            description.push_str(genre.name());
+        });
+
+        description.push_str("\nLanguage: ");
+        description.push_str(original_language);
+
+        if let Some(overview) = overview {
+            description.push_str("\n\n");
+            description.push_str(overview.as_str());
         }
     }
 
@@ -131,18 +204,19 @@ mod get {
                 item.guid(Some(guid));
             }
 
+            let mut description = credit
+                .overview_size_hint()
+                .map(String::with_capacity)
+                .unwrap_or(String::new());
+
             match credit {
                 Credit::Cast(Cast::Movie(credit)) => {
-                    let description = format!(
-                        "Character: {}\nGenres: {}\nLanguage: {}{}",
-                        credit.character.as_ref().map_or("TBA", |c| c.as_str()),
-                        credit.genres.iter().map(|genre| genre.name()).join(", "),
-                        credit.original_language,
-                        credit
-                            .overview
-                            .as_ref()
-                            .map(|overview| format!("\n\n{overview}"))
-                            .unwrap_or("".to_string()), // TODO - Improve
+                    construct_cast_description(
+                        &mut description,
+                        credit.character.as_ref(),
+                        &credit.genres,
+                        &credit.original_language,
+                        credit.overview.as_ref(),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -150,16 +224,12 @@ mod get {
                         .description(description);
                 }
                 Credit::Cast(Cast::Tv(credit)) => {
-                    let description = format!(
-                        "Character: {}\nGenres: {}\nLanguage: {}{}",
-                        credit.character.as_ref().map_or("TBA", |c| c.as_str()),
-                        credit.genres.iter().map(|genre| genre.name()).join(", "),
-                        credit.original_language,
-                        credit
-                            .overview
-                            .as_ref()
-                            .map(|overview| format!("\n\n{overview}"))
-                            .unwrap_or("".to_string()),
+                    construct_cast_description(
+                        &mut description,
+                        credit.character.as_ref(),
+                        &credit.genres,
+                        &credit.original_language,
+                        credit.overview.as_ref(),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -167,17 +237,13 @@ mod get {
                         .description(description);
                 }
                 Credit::Crew(Crew::Movie(credit)) => {
-                    let description = format!(
-                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}{}",
-                        credit.department,
-                        credit.job,
-                        credit.genres.iter().map(|genre| genre.name()).join(", "),
-                        credit.original_language,
-                        credit
-                            .overview
-                            .as_ref()
-                            .map(|overview| format!("\n\n{overview}"))
-                            .unwrap_or("".to_string()),
+                    construct_crew_description(
+                        &mut description,
+                        &credit.department,
+                        &credit.job,
+                        &credit.genres,
+                        &credit.original_language,
+                        credit.overview.as_ref(),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -185,17 +251,13 @@ mod get {
                         .description(description);
                 }
                 Credit::Crew(Crew::Tv(credit)) => {
-                    let description = format!(
-                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}{}",
-                        credit.department,
-                        credit.job,
-                        credit.genres.iter().map(|genre| genre.name()).join(", "),
-                        credit.original_language,
-                        credit
-                            .overview
-                            .as_ref()
-                            .map(|overview| format!("\n\n{overview}"))
-                            .unwrap_or("".to_string()),
+                    construct_crew_description(
+                        &mut description,
+                        &credit.department,
+                        &credit.job,
+                        &credit.genres,
+                        &credit.original_language,
+                        credit.overview.as_ref(),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
