@@ -189,4 +189,63 @@ mod tests {
 
         mock.assert();
     }
+
+    #[tokio::test]
+    async fn test_get_48000() {
+        const PERSON_ID: i32 = 48000;
+
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+
+        assert!(!response.adult);
+        assert!(response.also_known_as.is_empty());
+        assert_eq!(response.biography, None);
+        assert_eq!(
+            response.birthday,
+            NaiveDate::parse_from_str("1922-02-18", "%Y-%m-%d").ok()
+        );
+        assert_eq!(
+            response.deathday,
+            NaiveDate::parse_from_str("2012-02-26", "%Y-%m-%d").ok()
+        );
+        assert_eq!(response.gender, Gender::Male);
+        assert_eq!(response.homepage, None);
+        assert_eq!(response.id, PERSON_ID);
+        assert_eq!(response.imdb_id, Some("nm0652411".to_string()));
+        assert_eq!(response.known_for_department, "Acting");
+        assert_eq!(response.name, "Hazy Osterwald");
+        assert_eq!(
+            response.place_of_birth,
+            Some("Bern, Switzerland".to_string())
+        );
+        assert_eq!(response.popularity, 0.1471);
+        assert_eq!(response.profile_path, None);
+
+        mock.assert();
+    }
+
+    #[tokio::test]
+    async fn test_get_240990() {
+        const PERSON_ID: i32 = 240990;
+
+        let (tmdb, _server, mock) = init(PERSON_ID).await;
+        let response = get(&tmdb, PERSON_ID).await.unwrap();
+
+        assert!(!response.adult);
+        assert!(response.also_known_as.is_empty());
+        assert_eq!(response.biography, None);
+        assert_eq!(response.birthday, None);
+        assert_eq!(response.deathday, None);
+        assert_eq!(response.gender, Gender::NotSpecified);
+        assert_eq!(response.homepage, None);
+        assert_eq!(response.id, PERSON_ID);
+        assert_eq!(response.imdb_id, None);
+        assert_eq!(response.known_for_department, "Acting");
+        assert_eq!(response.name, "Phulada Luechatham");
+        assert_eq!(response.place_of_birth, None);
+        assert_eq!(response.popularity, 0.0552);
+        assert_eq!(response.profile_path, None);
+
+        mock.assert();
+    }
 }
