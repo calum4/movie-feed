@@ -5,15 +5,25 @@ use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer};
 use serde_utils::deserialize_potentially_empty_string;
+use tmdb_macros::IsCredit;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize, Hash)]
+#[derive(Debug, Deserialize, Hash, IsCredit)]
 #[serde(tag = "media_type")]
 pub enum Cast {
     #[serde(rename = "movie")]
     Movie(MovieCast),
     #[serde(rename = "tv")]
     Tv(TvCast),
+}
+
+impl Cast {
+    pub fn character(&self) -> Option<&String> {
+        match self {
+            Cast::Movie(credit) => credit.character.as_ref(),
+            Cast::Tv(credit) => credit.character.as_ref(),
+        }
+    }
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -102,75 +112,111 @@ where
     Ok(NaiveDate::parse_from_str(date.as_str(), "%Y-%m-%d").ok())
 }
 
-impl IsCredit for MovieCast {
+impl MovieCast {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
+}
 
+impl IsCredit for MovieCast {
+    #[inline]
     fn id(&self) -> usize {
         self.id
     }
 
+    #[inline]
     fn title(&self) -> &str {
         self.title.as_str()
     }
 
+    #[inline]
     fn original_title(&self) -> &str {
-        self.original_language.as_str()
+        self.original_title.as_str()
     }
 
-    fn genres(&self) -> &[impl Genre] {
-        &self.genres
+    #[inline]
+    fn genres(&self) -> Vec<&dyn Genre> {
+        self.genres
+            .iter()
+            .map(|genre| genre as &dyn Genre)
+            .collect()
     }
 
+    #[inline]
     fn release_date(&self) -> Option<&NaiveDate> {
         self.release_date.as_ref()
     }
 
+    #[inline]
     fn original_language(&self) -> &str {
         self.original_language.as_str()
     }
 
+    #[inline]
     fn overview(&self) -> Option<&String> {
         self.overview.as_ref()
     }
 
+    #[inline]
     fn credit_id(&self) -> &str {
         self.credit_id.as_str()
     }
+
+    #[inline]
+    fn media_type(&self) -> MediaType {
+        Self::MEDIA_TYPE
+    }
+}
+
+impl TvCast {
+    const MEDIA_TYPE: MediaType = MediaType::Tv;
 }
 
 impl IsCredit for TvCast {
-    const MEDIA_TYPE: MediaType = MediaType::Tv;
-
+    #[inline]
     fn id(&self) -> usize {
         self.id
     }
 
+    #[inline]
     fn title(&self) -> &str {
         self.name.as_str()
     }
 
+    #[inline]
     fn original_title(&self) -> &str {
-        self.original_language.as_str()
+        self.original_name.as_str()
     }
 
-    fn genres(&self) -> &[impl Genre] {
-        &self.genres
+    #[inline]
+    fn genres(&self) -> Vec<&dyn Genre> {
+        self.genres
+            .iter()
+            .map(|genre| genre as &dyn Genre)
+            .collect()
     }
 
+    #[inline]
     fn release_date(&self) -> Option<&NaiveDate> {
         self.first_air_date.as_ref()
     }
 
+    #[inline]
     fn original_language(&self) -> &str {
         self.original_language.as_str()
     }
 
+    #[inline]
     fn overview(&self) -> Option<&String> {
         self.overview.as_ref()
     }
 
+    #[inline]
     fn credit_id(&self) -> &str {
         self.credit_id.as_str()
+    }
+
+    #[inline]
+    fn media_type(&self) -> MediaType {
+        Self::MEDIA_TYPE
     }
 }
 

@@ -25,10 +25,7 @@ mod get {
     use std::time::Duration;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
     use tmdb::endpoints::v3::person::get as get_person_details;
-    use tmdb::models::v3::cast::Cast;
-    use tmdb::models::v3::credit::IsCredit;
-    use tmdb::models::v3::crew::Crew;
-    use tmdb::models::v3::genres::Genre;
+    use tmdb::models::v3::credit::{Credit, IsCredit};
     use tracing::warn;
 
     const TTL: Duration = Duration::from_secs(60 * 60); // 60 minutes
@@ -39,105 +36,7 @@ mod get {
     #[cfg(test)]
     const TEST_BUILD_TIME: NaiveTime = NaiveTime::from_hms_opt(18, 20, 44).unwrap();
 
-    #[derive(Debug, Hash)]
-    enum Credit {
-        Cast(Cast),
-        Crew(Crew),
-    }
-
-    impl Credit {
-        // TODO - traits for common properties?
-        fn release_date(&self) -> &Option<NaiveDate> {
-            match self {
-                Credit::Cast(Cast::Movie(movie)) => &movie.release_date,
-                Credit::Cast(Cast::Tv(tv)) => &tv.first_air_date,
-                Credit::Crew(Crew::Movie(movie)) => &movie.release_date,
-                Credit::Crew(Crew::Tv(tv)) => &tv.first_air_date,
-            }
-        }
-
-        fn credit_id(&self) -> usize {
-            match self {
-                Credit::Cast(Cast::Movie(credit)) => credit.id,
-                Credit::Cast(Cast::Tv(credit)) => credit.id,
-                Credit::Crew(Crew::Movie(credit)) => credit.id,
-                Credit::Crew(Crew::Tv(credit)) => credit.id,
-            }
-        }
-
-        fn overview_len(&self) -> Option<usize> {
-            match self {
-                Credit::Cast(Cast::Movie(credit)) => {
-                    credit.overview.as_ref().map(|overview| overview.len())
-                }
-                Credit::Cast(Cast::Tv(credit)) => {
-                    credit.overview.as_ref().map(|overview| overview.len())
-                }
-                Credit::Crew(Crew::Movie(credit)) => {
-                    credit.overview.as_ref().map(|overview| overview.len())
-                }
-                Credit::Crew(Crew::Tv(credit)) => {
-                    credit.overview.as_ref().map(|overview| overview.len())
-                }
-            }
-        }
-    }
-
-    fn construct_cast_description(
-        description: &mut String,
-        character: Option<&String>,
-        genres: &[impl Genre],
-        original_language: &str,
-        overview: Option<&String>,
-    ) {
-        description.push_str("Character: ");
-        description.push_str(character.map_or("TBA", |c| c.as_str()));
-
-        construct_common_description(description, genres, original_language, overview);
-    }
-
-    fn construct_crew_description(
-        description: &mut String,
-        department: &str,
-        job: &str,
-        genres: &[impl Genre],
-        original_language: &str,
-        overview: Option<&String>,
-    ) {
-        description.push_str("Department: ");
-        description.push_str(department);
-
-        description.push_str("\nJob: ");
-        description.push_str(job);
-
-        construct_common_description(description, genres, original_language, overview);
-    }
-
-    fn construct_common_description(
-        description: &mut String,
-        genres: &[impl Genre],
-        original_language: &str,
-        overview: Option<&String>,
-    ) {
-        description.push_str("\nGenres: ");
-        genres.iter().enumerate().for_each(|(i, genre)| {
-            if i > 0 {
-                description.push_str(", ");
-            }
-
-            description.push_str(genre.name());
-        });
-
-        description.push_str("\nLanguage: ");
-        description.push_str(original_language);
-
-        if let Some(overview) = overview {
-            description.push_str("\n\n");
-            description.push_str(overview.as_str());
-        }
-    }
-
-    fn sort_release_date_descending(a: &Option<NaiveDate>, b: &Option<NaiveDate>) -> Ordering {
+    fn sort_release_date_descending(a: Option<&NaiveDate>, b: Option<&NaiveDate>) -> Ordering {
         match (a, b) {
             (None, None) => Ordering::Equal,
             (None, Some(_)) => Ordering::Less,
@@ -190,7 +89,7 @@ mod get {
 
                 // More permissive hash for tests without sacrificing test quality
                 if cfg!(test) {
-                    credit.credit_id().hash(&mut hasher);
+                    credit.id().hash(&mut hasher);
                 } else {
                     credit.hash(&mut hasher);
                 }
@@ -210,62 +109,40 @@ mod get {
                 .map(String::with_capacity)
                 .unwrap_or(String::new());
 
-            match credit {
-                Credit::Cast(Cast::Movie(credit)) => {
-                    construct_cast_description(
-                        &mut description,
-                        credit.character.as_ref(),
-                        &credit.genres,
-                        &credit.original_language,
-                        credit.overview.as_ref(),
-                    );
-
-                    item.link(credit.tmdb_media_url().to_string())
-                        .title(credit.title)
-                        .description(description);
+            match &credit {
+                Credit::Cast(cast) => {
+                    description.push_str("Character: ");
+                    description.push_str(cast.character().map_or("TBA", |c| c.as_str()));
                 }
-                Credit::Cast(Cast::Tv(credit)) => {
-                    construct_cast_description(
-                        &mut description,
-                        credit.character.as_ref(),
-                        &credit.genres,
-                        &credit.original_language,
-                        credit.overview.as_ref(),
-                    );
+                Credit::Crew(crew) => {
+                    description.push_str("Department: ");
+                    description.push_str(crew.department());
 
-                    item.link(credit.tmdb_media_url().to_string())
-                        .title(credit.name)
-                        .description(description);
-                }
-                Credit::Crew(Crew::Movie(credit)) => {
-                    construct_crew_description(
-                        &mut description,
-                        &credit.department,
-                        &credit.job,
-                        &credit.genres,
-                        &credit.original_language,
-                        credit.overview.as_ref(),
-                    );
-
-                    item.link(credit.tmdb_media_url().to_string())
-                        .title(credit.title)
-                        .description(description);
-                }
-                Credit::Crew(Crew::Tv(credit)) => {
-                    construct_crew_description(
-                        &mut description,
-                        &credit.department,
-                        &credit.job,
-                        &credit.genres,
-                        &credit.original_language,
-                        credit.overview.as_ref(),
-                    );
-
-                    item.link(credit.tmdb_media_url().to_string())
-                        .title(credit.name)
-                        .description(description);
+                    description.push_str("\nJob: ");
+                    description.push_str(crew.job());
                 }
             };
+
+            description.push_str("\nGenres: ");
+            credit.genres().iter().enumerate().for_each(|(i, genre)| {
+                if i > 0 {
+                    description.push_str(", ");
+                }
+
+                description.push_str(genre.name());
+            });
+
+            description.push_str("\nLanguage: ");
+            description.push_str(credit.original_language());
+
+            if let Some(overview) = credit.overview() {
+                description.push_str("\n\n");
+                description.push_str(overview.as_str());
+            }
+
+            item.link(credit.tmdb_media_url().to_string())
+                .title(Some(credit.title().to_string()))
+                .description(description);
 
             items.push(item.build());
         }
@@ -374,7 +251,7 @@ mod get {
                 NaiveDate::from_ymd_opt(1990, 6, 1),
             ];
 
-            dates.sort_by(sort_release_date_descending);
+            dates.sort_by(|a, b| sort_release_date_descending(a.as_ref(), b.as_ref()));
 
             assert_eq!(dates, sorted_dates);
         }
