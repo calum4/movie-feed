@@ -20,6 +20,7 @@ use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{Span, debug_span, info};
 
+mod process_result;
 mod routes;
 
 const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");

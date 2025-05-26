@@ -11,6 +11,7 @@ pub(super) fn router() -> Router {
 mod get {
     use super::*;
     use crate::api::ApiState;
+    use crate::api::process_result::{ProcessedResponse, process_response};
     use axum::Extension;
     use axum::extract::Path;
     use axum::response::{IntoResponse, Response};
@@ -75,22 +76,25 @@ mod get {
         Path(person_id): Path<i32>,
         api_state: Extension<Arc<ApiState>>,
     ) -> Response {
-        let details = match get_person_details(&api_state.tmdb, person_id).await {
-            Ok(details) => details,
-            Err(error) => {
+        let details = match process_response(get_person_details(&api_state.tmdb, person_id).await) {
+            ProcessedResponse::Ok(details) => details,
+            ProcessedResponse::Err(error) => {
                 warn!("{error}");
-
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
+            ProcessedResponse::Response(response) => return response,
         };
 
-        let credits = match get_combined_credits(&api_state.tmdb, &person_id.to_string()).await {
-            Ok(credits) => credits,
-            Err(error) => {
+        let credits = match process_response(
+            get_combined_credits(&api_state.tmdb, &person_id.to_string()).await,
+        ) {
+            ProcessedResponse::Ok(credits) => credits,
+            ProcessedResponse::Err(error) => {
                 warn!("{error}");
 
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
+            ProcessedResponse::Response(response) => return response,
         };
 
         let cast_iter = credits.cast.into_iter().map(Credit::Cast);
