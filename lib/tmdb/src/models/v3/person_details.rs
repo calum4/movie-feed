@@ -1,7 +1,8 @@
 use crate::models::v3::gender::Gender;
 use crate::{IMDB_SITE_URL, SITE_URL};
 use chrono::NaiveDate;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
+use serde_utils::deserialize_potentially_empty_string;
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
@@ -11,21 +12,40 @@ pub struct PersonDetails {
     pub adult: bool,
     #[serde(default = "serde_utils::vec_zero_size")]
     pub also_known_as: Vec<String>,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub biography: Option<String>,
+    #[serde(deserialize_with = "deserialize_date", default)]
     pub birthday: Option<NaiveDate>,
+    #[serde(deserialize_with = "deserialize_date", default)]
     pub deathday: Option<NaiveDate>,
     #[serde(default)]
     pub gender: Gender,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub homepage: Option<String>,
     #[serde(default)]
     pub id: i32,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub imdb_id: Option<String>,
     pub known_for_department: String,
     pub name: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub place_of_birth: Option<String>,
     #[serde(default)]
     pub popularity: f32,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub profile_path: Option<String>,
+}
+
+pub(super) fn deserialize_date<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let date = match deserialize_potentially_empty_string(deserializer)? {
+        None => return Ok(None),
+        Some(date) => date,
+    };
+
+    Ok(NaiveDate::parse_from_str(date.as_str(), "%Y-%m-%d").ok())
 }
 
 impl PersonDetails {
