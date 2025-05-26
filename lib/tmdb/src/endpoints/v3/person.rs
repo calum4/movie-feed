@@ -1,6 +1,7 @@
 use crate::Tmdb;
 use crate::endpoints::{RequestError, request};
 use crate::models::v3::person_details::PersonDetails;
+use crate::models::v3::tmdb_error::TmdbError;
 use http::StatusCode;
 use reqwest::Method;
 
@@ -12,11 +13,16 @@ pub mod combined_credits;
 pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, RequestError> {
     let path = format!("person/{person_id}");
 
-    let response: reqwest::Response = request(tmdb, path, Method::GET).await?;
+    let response = request(tmdb, path, Method::GET).await?;
 
     match response.status() {
         StatusCode::OK => (),
-        _ => return Err(RequestError::UnexpectedStatusCode(response.status())),
+        _ => {
+            return Err(match TmdbError::try_from_response(response).await {
+                Ok(error) => error.into(),
+                Err(error) => error.into(),
+            });
+        }
     }
 
     response

@@ -2,6 +2,7 @@ use crate::Tmdb;
 use crate::endpoints::{RequestError, request};
 use crate::models::v3::cast::Cast;
 use crate::models::v3::crew::Crew;
+use crate::models::v3::tmdb_error::TmdbError;
 use http::StatusCode;
 use reqwest::Method;
 use serde::Deserialize;
@@ -31,7 +32,12 @@ pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, Reques
 
     match response.status() {
         StatusCode::OK => (),
-        _ => return Err(RequestError::UnexpectedStatusCode(response.status())),
+        _ => {
+            return Err(match TmdbError::try_from_response(response).await {
+                Ok(error) => error.into(),
+                Err(error) => error.into(),
+            });
+        }
     }
 
     response
