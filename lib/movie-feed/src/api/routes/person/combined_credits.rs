@@ -134,11 +134,15 @@ mod get {
             match credit {
                 Credit::Cast(Cast::Movie(credit)) => {
                     let description = format!(
-                        "Character: {}\nGenres: {}\nLanguage: {}\n\n{}",
+                        "Character: {}\nGenres: {}\nLanguage: {}{}",
                         credit.character.as_ref().map_or("TBA", |c| c.as_str()),
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
-                        credit.overview
+                        credit
+                            .overview
+                            .as_ref()
+                            .map(|overview| format!("\n\n{overview}"))
+                            .unwrap_or("".to_string()), // TODO - Improve
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -147,11 +151,15 @@ mod get {
                 }
                 Credit::Cast(Cast::Tv(credit)) => {
                     let description = format!(
-                        "Character: {}\nGenres: {}\nLanguage: {}\n\n{}",
+                        "Character: {}\nGenres: {}\nLanguage: {}{}",
                         credit.character.as_ref().map_or("TBA", |c| c.as_str()),
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
-                        credit.overview
+                        credit
+                            .overview
+                            .as_ref()
+                            .map(|overview| format!("\n\n{overview}"))
+                            .unwrap_or("".to_string()),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -160,12 +168,16 @@ mod get {
                 }
                 Credit::Crew(Crew::Movie(credit)) => {
                     let description = format!(
-                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}\n\n{}",
+                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}{}",
                         credit.department,
                         credit.job,
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
-                        credit.overview
+                        credit
+                            .overview
+                            .as_ref()
+                            .map(|overview| format!("\n\n{overview}"))
+                            .unwrap_or("".to_string()),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())
@@ -174,12 +186,16 @@ mod get {
                 }
                 Credit::Crew(Crew::Tv(credit)) => {
                     let description = format!(
-                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}\n\n{}",
+                        "Department: {}\nJob: {}\nGenres: {}\nLanguage: {}{}",
                         credit.department,
                         credit.job,
                         credit.genres.iter().map(|genre| genre.name()).join(", "),
                         credit.original_language,
-                        credit.overview
+                        credit
+                            .overview
+                            .as_ref()
+                            .map(|overview| format!("\n\n{overview}"))
+                            .unwrap_or("".to_string()),
                     );
 
                     item.link(credit.tmdb_media_url().to_string())

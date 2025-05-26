@@ -3,140 +3,82 @@ use crate::models::v3::genre_id::GenreId;
 use crate::models::v3::genres::{MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
-use serde::de::Error as DeError;
 use serde::{Deserialize, Deserializer};
 use serde_utils::deserialize_potentially_empty_string;
 use url::Url;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Hash)]
+#[derive(Debug, Deserialize, Hash)]
+#[serde(tag = "media_type")]
 pub enum Cast {
+    #[serde(rename = "movie")]
     Movie(MovieCast),
+    #[serde(rename = "tv")]
     Tv(TvCast),
 }
 
-impl<'de> Deserialize<'de> for Cast {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Debug, Deserialize)]
-        struct JoinedCast {
-            // Common
-            pub id: usize,
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub character: Option<String>,
-            pub genre_ids: Vec<GenreId>,
-            pub overview: String,
-            pub original_language: String,
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub credit_id: Option<String>,
-            pub media_type: Option<MediaType>,
-            // Movie
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub title: Option<String>,
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub original_title: Option<String>,
-            #[serde(deserialize_with = "deserialize_release_date", default)]
-            pub release_date: Option<NaiveDate>,
-            // Tv
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub name: Option<String>,
-            #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
-            pub original_name: Option<String>,
-            #[serde(deserialize_with = "deserialize_release_date", default)]
-            pub first_air_date: Option<NaiveDate>,
-        }
-
-        let data = JoinedCast::deserialize(deserializer)?;
-
-        let media_type = data
-            .media_type
-            .or_else(|| {
-                if data.title.is_some() || data.original_title.is_some() {
-                    Some(MediaType::Movie)
-                } else if data.name.is_some() || data.original_name.is_some() {
-                    Some(MediaType::Tv)
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| DeError::custom("unable to discern the media type"))?;
-
-        Ok(match media_type {
-            MediaType::Movie => {
-                let (title, original_title) = match (data.title, data.original_title) {
-                    (Some(title), Some(original_title)) => (title, original_title),
-                    (Some(title), None) => (title.clone(), title),
-                    (None, Some(original_title)) => (original_title.clone(), original_title),
-                    (None, None) => return Err(DeError::missing_field("title or original_title")),
-                };
-
-                MovieCast {
-                    id: data.id,
-                    title,
-                    original_title,
-                    character: data.character,
-                    genres: data.genre_ids.into_iter().map(MovieGenre::from).collect(),
-                    release_date: data.release_date,
-                    overview: data.overview,
-                    original_language: data.original_language,
-                    credit_id: data.credit_id,
-                }
-                .into()
-            }
-            MediaType::Tv => {
-                let (name, original_name) = match (data.name, data.original_name) {
-                    (Some(name), Some(original_name)) => (name, original_name),
-                    (Some(name), None) => (name.clone(), name),
-                    (None, Some(original_name)) => (original_name.clone(), original_name),
-                    (None, None) => return Err(DeError::missing_field("name or original_name")),
-                };
-
-                TvCast {
-                    id: data.id,
-                    name,
-                    original_name,
-                    character: data.character,
-                    genres: data.genre_ids.into_iter().map(TvGenre::from).collect(),
-                    first_air_date: data.first_air_date,
-                    overview: data.overview,
-                    original_language: data.original_language,
-                    credit_id: data.credit_id,
-                }
-                .into()
-            }
-            _ => unreachable!(),
-        })
-    }
-}
-
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Hash)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct MovieCast {
     pub id: usize,
     pub title: String,
     pub original_title: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub character: Option<String>,
+    #[serde(deserialize_with = "deserialize_movie_genre", flatten, default)]
     pub genres: Vec<MovieGenre>,
+    #[serde(deserialize_with = "deserialize_release_date", default)]
     pub release_date: Option<NaiveDate>,
-    pub overview: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
+    pub overview: Option<String>,
     pub original_language: String,
-    pub credit_id: Option<String>,
+    pub credit_id: String,
 }
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Hash)]
+#[derive(Debug, Deserialize, Hash)]
 pub struct TvCast {
     pub id: usize,
     pub name: String,
     pub original_name: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub character: Option<String>,
+    #[serde(deserialize_with = "deserialize_tv_genre", flatten, default)]
     pub genres: Vec<TvGenre>,
+    #[serde(deserialize_with = "deserialize_release_date", default)]
     pub first_air_date: Option<NaiveDate>,
-    pub overview: String,
+    #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
+    pub overview: Option<String>,
     pub original_language: String,
-    pub credit_id: Option<String>,
+    pub credit_id: String,
+}
+
+pub(super) fn deserialize_movie_genre<'de, D>(deserializer: D) -> Result<Vec<MovieGenre>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Data {
+        genre_ids: Vec<GenreId>,
+    }
+
+    let Data { genre_ids } = Data::deserialize(deserializer)?;
+
+    Ok(genre_ids.into_iter().map(MovieGenre::from).collect())
+}
+
+pub(super) fn deserialize_tv_genre<'de, D>(deserializer: D) -> Result<Vec<TvGenre>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Data {
+        genre_ids: Vec<GenreId>,
+    }
+
+    let Data { genre_ids } = Data::deserialize(deserializer)?;
+
+    Ok(genre_ids.into_iter().map(TvGenre::from).collect())
 }
 
 pub(super) fn deserialize_release_date<'de, D>(
@@ -204,18 +146,6 @@ impl MediaPageUrl for TvCast {
     }
 }
 
-impl From<MovieCast> for Cast {
-    fn from(value: MovieCast) -> Self {
-        Self::Movie(value)
-    }
-}
-
-impl From<TvCast> for Cast {
-    fn from(value: TvCast) -> Self {
-        Self::Tv(value)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -229,9 +159,9 @@ mod tests {
             character: Some("Ted".to_string()),
             genres: vec![MovieGenre::Action, MovieGenre::Crime, MovieGenre::Thriller],
             release_date: NaiveDate::parse_from_str("2015-09-17", "%Y-%m-%d").ok(),
-            overview: "An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string(),
+            overview: Some("An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string()),
             original_language: "en".to_string(),
-            credit_id: Some("example-credit-id".to_string()),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 
@@ -243,9 +173,9 @@ mod tests {
             character: Some("Frank Castle / Punisher".to_string()),
             genres: vec![TvGenre::ActionAndAdventure, TvGenre::Crime, TvGenre::Drama],
             first_air_date: NaiveDate::parse_from_str("2017-11-17", "%Y-%m-%d").ok(),
-            overview: "A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string(),
+            overview: Some("A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string()),
             original_language: "en".to_string(),
-            credit_id: Some("example-credit-id".to_string()),
+            credit_id: "example-credit-id".to_string(),
         }
     }
 
