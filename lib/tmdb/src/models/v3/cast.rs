@@ -25,7 +25,11 @@ pub struct MovieCast {
     pub original_title: String,
     #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub character: Option<String>,
-    #[serde(deserialize_with = "deserialize_movie_genre", flatten, default)]
+    #[serde(
+        deserialize_with = "deserialize_movie_genre",
+        flatten,
+        default = "serde_utils::vec_zero_size"
+    )]
     pub genres: Vec<MovieGenre>,
     #[serde(deserialize_with = "deserialize_release_date", default)]
     pub release_date: Option<NaiveDate>,
@@ -43,7 +47,11 @@ pub struct TvCast {
     pub original_name: String,
     #[serde(deserialize_with = "deserialize_potentially_empty_string", default)]
     pub character: Option<String>,
-    #[serde(deserialize_with = "deserialize_tv_genre", flatten, default)]
+    #[serde(
+        deserialize_with = "deserialize_tv_genre",
+        flatten,
+        default = "serde_utils::vec_zero_size"
+    )]
     pub genres: Vec<TvGenre>,
     #[serde(deserialize_with = "deserialize_release_date", default)]
     pub first_air_date: Option<NaiveDate>,
