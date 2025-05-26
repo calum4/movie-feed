@@ -95,13 +95,12 @@ pub(super) fn deserialize_release_date<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let date: &str = Deserialize::deserialize(deserializer)?;
+    let date = match deserialize_potentially_empty_string(deserializer)? {
+        None => return Ok(None),
+        Some(date) => date,
+    };
 
-    if date.is_empty() {
-        return Ok(None);
-    }
-
-    Ok(NaiveDate::parse_from_str(date, "%Y-%m-%d").ok())
+    Ok(NaiveDate::parse_from_str(date.as_str(), "%Y-%m-%d").ok())
 }
 
 pub trait IsCredit {}
