@@ -201,7 +201,12 @@ mod tests {
             job: "Directing".to_string(),
             genres: vec![MovieGenre::Action],
             release_date: None,
-            overview: Some("The sequel to the 2024 reboot.".to_string()),
+            overview: Some(
+                include_str!(
+                    "../../../tests/assets/api/person/combined_credits/1290379_overview.txt"
+                )
+                .to_string(),
+            ),
             original_language: "en".to_string(),
             credit_id: "example-credit-id".to_string(),
         }
@@ -216,7 +221,12 @@ mod tests {
             job: "Creator".to_string(),
             genres: vec![TvGenre::Comedy, TvGenre::Drama, TvGenre::Crime],
             first_air_date: NaiveDate::parse_from_str("2024-03-07", "%Y-%m-%d").ok(),
-            overview: Some("When aristocratic Eddie inherits the family estate, he discovers that it's home to an enormous weed empire — and its proprietors aren't going anywhere.".to_string()),
+            overview: Some(
+                include_str!(
+                    "../../../tests/assets/api/person/combined_credits/236235_overview.txt"
+                )
+                .to_string(),
+            ),
             original_language: "en".to_string(),
             credit_id: "example-credit-id".to_string(),
         }

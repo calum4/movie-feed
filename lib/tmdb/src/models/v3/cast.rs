@@ -232,7 +232,12 @@ mod tests {
             character: Some("Ted".to_string()),
             genres: vec![MovieGenre::Action, MovieGenre::Crime, MovieGenre::Thriller],
             release_date: NaiveDate::parse_from_str("2015-09-17", "%Y-%m-%d").ok(),
-            overview: Some("An idealistic FBI agent is enlisted by a government task force to aid in the escalating war against drugs at the border area between the U.S. and Mexico.".to_string()),
+            overview: Some(
+                include_str!(
+                    "../../../tests/assets/api/person/combined_credits/273481_overview.txt"
+                )
+                .to_string(),
+            ),
             original_language: "en".to_string(),
             credit_id: "example-credit-id".to_string(),
         }
@@ -246,7 +251,12 @@ mod tests {
             character: Some("Frank Castle / Punisher".to_string()),
             genres: vec![TvGenre::ActionAndAdventure, TvGenre::Crime, TvGenre::Drama],
             first_air_date: NaiveDate::parse_from_str("2017-11-17", "%Y-%m-%d").ok(),
-            overview: Some("A former Marine out to punish the criminals responsible for his family's murder finds himself ensnared in a military conspiracy.".to_string()),
+            overview: Some(
+                include_str!(
+                    "../../../tests/assets/api/person/combined_credits/273481_overview.txt"
+                )
+                .to_string(),
+            ),
             original_language: "en".to_string(),
             credit_id: "example-credit-id".to_string(),
         }
