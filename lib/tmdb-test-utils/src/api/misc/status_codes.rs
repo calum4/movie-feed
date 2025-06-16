@@ -9,13 +9,22 @@ pub async fn mock_status_code(
     let path = format!("/status_codes/{}", status_code.as_u16());
 
     (
-        server
-            .mock(method.as_str(), path.as_str())
-            .with_status(status_code.as_u16() as usize)
-            .create_async()
-            .await,
+        mock_status_code_at_path(server, path.as_str(), method, status_code).await,
         path,
     )
+}
+
+pub async fn mock_status_code_at_path(
+    server: &mut ServerGuard,
+    path: &str,
+    method: Method,
+    status_code: StatusCode,
+) -> Mock {
+    server
+        .mock(method.as_str(), path)
+        .with_status(status_code.as_u16() as usize)
+        .create_async()
+        .await
 }
 
 pub async fn mock_get_ok(server: &mut ServerGuard) -> (Mock, String) {
@@ -56,6 +65,23 @@ mod tests {
     use crate::start_mock_tmdb_api;
     use http::StatusCode;
     use reqwest::Client;
+
+    #[tokio::test]
+    async fn test_mock_status_code_at_path() {
+        let mut server = start_mock_tmdb_api().await;
+        let path = "/test_mock_status_code_at_path/POST/400";
+
+        let mock =
+            mock_status_code_at_path(&mut server, path, Method::POST, StatusCode::BAD_REQUEST)
+                .await;
+        let client = Client::new();
+
+        let url = format!("{}{path}", server.url());
+        let response = client.post(url).send().await.unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        mock.assert();
+    }
 
     #[tokio::test]
     async fn test_ok() {
