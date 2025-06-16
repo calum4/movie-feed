@@ -3,12 +3,14 @@ use crate::endpoints::{RequestError, request};
 use crate::models::v3::cast::Cast;
 use crate::models::v3::crew::Crew;
 use crate::models::v3::tmdb_error::TmdbError;
+#[cfg(all(feature = "cached", not(test)))]
+use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
 use serde::Deserialize;
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CombinedCredits {
     #[serde(default)]
     pub id: Option<u64>,
@@ -25,6 +27,14 @@ pub struct CombinedCredits {
 /// ## NOTE
 /// The CombinedCredits struct is not an exhaustive representation of the data provided by
 /// the api.
+#[cfg_attr(all(feature = "cached", not(test)), cached(
+    time = 3600, // 1 hour
+    time_refresh = false,
+    sync_writes = "by_key",
+    key = "String",
+    convert = r##"{ person_id.to_string() }"##,
+    result = true
+))]
 pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, RequestError> {
     let path = format!("person/{person_id}/combined_credits");
 
