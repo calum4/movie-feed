@@ -88,8 +88,6 @@ pub(crate) async fn start_api_server(
         .layer(SetRequestIdLayer::new(REQUEST_ID_HEADER, MakeRequestUuid))
         .layer(TimeoutLayer::new(Duration::from_secs(30)));
 
-    // TODO - Cache responses
-
     let handle = tokio::spawn(async move {
         serve(
             listener,
