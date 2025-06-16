@@ -22,6 +22,7 @@ use tracing::{Span, debug_span, info};
 
 mod process_result;
 mod routes;
+mod rss;
 
 const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
 

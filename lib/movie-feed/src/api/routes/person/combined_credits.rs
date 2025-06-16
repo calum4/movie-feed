@@ -12,6 +12,7 @@ mod get {
     use super::*;
     use crate::api::ApiState;
     use crate::api::process_result::{ProcessedResponse, process_response};
+    use crate::api::rss::Rss;
     use axum::Extension;
     use axum::extract::Path;
     use axum::response::{IntoResponse, Response};
@@ -174,7 +175,8 @@ mod get {
             channel.description(bio);
         }
 
-        channel.build().to_string().into_response()
+        let rss = Rss::new(channel.build());
+        rss.into_response()
     }
 
     #[cfg(test)]
