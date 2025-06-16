@@ -6,6 +6,7 @@ use crate::models::v3::tmdb_error::TmdbError;
 use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
+use tracing::{instrument, trace};
 
 pub mod combined_credits;
 
@@ -20,7 +21,11 @@ pub mod combined_credits;
     convert = r##"{ person_id }"##,
     result = true
 ))]
+#[instrument(level = "trace", name = "person::get", skip(tmdb))]
 pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, RequestError> {
+    #[cfg(feature = "cached")]
+    trace!("cache miss");
+
     let path = format!("person/{person_id}");
 
     let response = request(tmdb, path, Method::GET).await?;

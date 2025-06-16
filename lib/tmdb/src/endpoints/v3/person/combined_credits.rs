@@ -8,6 +8,7 @@ use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
 use serde::Deserialize;
+use tracing::{instrument, trace};
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Clone)]
@@ -35,7 +36,11 @@ pub struct CombinedCredits {
     convert = r##"{ person_id.to_string() }"##,
     result = true
 ))]
+#[instrument(level = "trace", name = "combined_credits::get", skip(tmdb))]
 pub async fn get(tmdb: &Tmdb, person_id: &str) -> Result<CombinedCredits, RequestError> {
+    #[cfg(feature = "cached")]
+    trace!("cache miss");
+
     let path = format!("person/{person_id}/combined_credits");
 
     let response = request(tmdb, path, Method::GET).await?;
