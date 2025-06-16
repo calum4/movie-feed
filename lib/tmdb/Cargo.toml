@@ -35,5 +35,4 @@ workspace = true
 
 [features]
 test_utils = []
-serde_serialize = []
 cached = ["dep:cached"]

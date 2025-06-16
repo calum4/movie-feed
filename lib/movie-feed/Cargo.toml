@@ -14,7 +14,7 @@ readme.workspace = true
 
 [dependencies]
 # Local crates
-tmdb = {workspace = true, features = ["serde_serialize", "cached"]}
+tmdb = {workspace = true, features = ["cached"]}
 
 # Non-local crates
 tokio = {workspace = true}
@@ -35,7 +35,7 @@ itertools = {version = "0.14.0", features = []}
 mime = {version = "0.3.17", features = []}
 
 [dev-dependencies]
-tmdb = {workspace = true, features = ["serde_serialize", "test_utils"]}
+tmdb = {workspace = true, features = ["test_utils"]}
 tmdb-test-utils = {workspace = true}
 
 [lints]

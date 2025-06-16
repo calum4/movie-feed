@@ -2,7 +2,6 @@ use serde::Deserialize;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Deserialize, Hash)]
 pub struct GenreId(usize);
 

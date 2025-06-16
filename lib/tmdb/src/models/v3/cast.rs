@@ -7,7 +7,6 @@ use serde::{Deserialize, Deserializer};
 use serde_utils::deserialize_potentially_empty_string;
 use tmdb_macros::IsCredit;
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Hash, IsCredit, Clone)]
 #[serde(tag = "media_type")]
 pub enum Cast {
@@ -26,7 +25,6 @@ impl Cast {
     }
 }
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Hash, Clone)]
 pub struct MovieCast {
     pub id: usize,
@@ -48,7 +46,6 @@ pub struct MovieCast {
     pub credit_id: String,
 }
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Hash, Clone)]
 pub struct TvCast {
     pub id: usize,

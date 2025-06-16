@@ -5,7 +5,6 @@ use serde::{Deserialize, Deserializer};
 use serde_utils::deserialize_potentially_empty_string;
 use url::Url;
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Clone)]
 pub struct PersonDetails {
     #[serde(default = "serde_utils::bool_true")]

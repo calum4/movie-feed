@@ -10,7 +10,6 @@ use reqwest::Method;
 use serde::Deserialize;
 use tracing::{instrument, trace};
 
-#[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
 #[derive(Debug, Deserialize, Clone)]
 pub struct CombinedCredits {
     #[serde(default)]
