@@ -1,4 +1,6 @@
 
+# Still Under active development!
+
 <h1 align="center">
   <br>
   Movie Feed
@@ -21,7 +23,18 @@
 
 The full changelog can be found at [CHANGELOG.md](CHANGELOG.md)
 
+## Motivation
+
+I found myself wanting a better way to keep tabs on upcoming tv and movies from my favourite actors/crew. After 
+considering a few different options, I settled on creating an API which queried [TMDB](https://www.themoviedb.org/), 
+and then formatted the resultant data into an RSS feed.
+
+I then consume this feed with the feed reader of my choice, [FreshRSS](https://github.com/FreshRSS/FreshRSS) (other feed
+readers are available).
+
 ## Usage
+
+**Note** - Under no circumstance do I recommend exposing Movie Feed to the internet.
 
 ## License
 
