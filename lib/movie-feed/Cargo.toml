@@ -1,9 +1,9 @@
 [package]
 name = "movie-feed"
 repository = "https://github.com/calum4/movie-feed/tree/main/lib/movie-feed"
-publish = false
-version = "0.0.0"
+publish = true
 
+version.workspace = true
 authors.workspace = true
 categories.workspace = true
 description.workspace = true

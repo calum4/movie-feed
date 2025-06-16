@@ -6,7 +6,7 @@ default-members = ["lib/movie-feed"]
 [workspace.package]
 authors = ["Calum4"]
 categories = ["command-line-utilities"] # TODO categories
-description = "a" # TODO description
+description = "Keep up-to-date with your favourite actors upcoming work via an RSS feed!"
 edition = "2024"
 keywords = ["feed", "movie", "tv", "tmdb", "rss"]
 license = "MIT OR Apache-2.0"
@@ -17,11 +17,11 @@ version = "0.1.0"
 
 [workspace.dependencies]
 # Local crates
-movie-feed = {path = "lib/movie-feed"}
-serde-utils = {path = "lib/serde-utils"}
-tmdb = {path = "lib/tmdb"}
-tmdb-macros = {path = "lib/tmdb-macros"}
-tmdb-test-utils = {path = "lib/tmdb-test-utils"}
+movie-feed = {path = "lib/movie-feed", version = "0.1.0"}
+serde-utils = {path = "lib/serde-utils", version = "0.0.0"}
+tmdb = {path = "lib/tmdb", version = "0.0.0"}
+tmdb-macros = {path = "lib/tmdb-macros", version = "0.0.0"}
+tmdb-test-utils = {path = "lib/tmdb-test-utils", version = "0.0.0"}
 
 # Non-local crates
 tokio = {version = "1.45.1", features = ["rt", "rt-multi-thread", "macros"]}
