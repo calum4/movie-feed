@@ -14,13 +14,14 @@ mod get {
     use crate::api::process_result::{ProcessedResponse, process_response};
     use crate::api::rss::Rss;
     use axum::Extension;
-    use axum::extract::Path;
+    use axum::extract::{Path, Query};
     use axum::response::{IntoResponse, Response};
     #[cfg(test)]
     use chrono::{DateTime, NaiveDateTime, NaiveTime};
     use chrono::{NaiveDate, Utc};
     use itertools::Itertools;
     use rss::{ChannelBuilder, Item, ItemBuilder};
+    use serde::Deserialize;
     use std::cmp::Ordering;
     use std::sync::Arc;
     use std::time::Duration;
@@ -46,9 +47,16 @@ mod get {
         }
     }
 
+    #[derive(Deserialize)]
+    pub(super) struct QueryArgs {
+        #[serde(default)]
+        size: Option<usize>,
+    }
+
     pub(super) async fn combined_credits(
         Path(person_id): Path<i32>,
         api_state: Extension<Arc<ApiState>>,
+        query: Query<QueryArgs>,
     ) -> Response {
         let details = match process_response(get_person_details(&api_state.tmdb, person_id).await) {
             ProcessedResponse::Ok(details) => details,
@@ -77,9 +85,10 @@ mod get {
         let mut credits = cast_iter.merge_by(crew_iter, |_a, _b| true).collect_vec();
         credits.sort_by(|a, b| sort_release_date_descending(a.release_date(), b.release_date()));
 
-        let mut items: Vec<Item> = Vec::with_capacity(SIZE);
+        let items_size = query.size.unwrap_or(SIZE);
+        let mut items: Vec<Item> = Vec::with_capacity(items_size);
 
-        for credit in credits.into_iter().take(SIZE) {
+        for credit in credits.into_iter().take(items_size) {
             let mut item = ItemBuilder::default();
 
             {
@@ -202,17 +211,21 @@ mod get {
             (tmdb, server, (details_mock, credits_mock))
         }
 
-        #[tokio::test]
-        async fn test_get() {
-            const PERSON_ID: i32 = 19498;
-
-            let (tmdb, _server, (details_mock, credits_mock)) = init(PERSON_ID).await;
+        async fn combined_credits(person_id: i32, query_args: QueryArgs) -> axum::body::Bytes {
+            let (tmdb, _server, (details_mock, credits_mock)) = init(person_id).await;
 
             let api_state = ApiState { tmdb };
 
-            let body = combined_credits(Path(PERSON_ID), Extension(Arc::new(api_state)))
-                .await
-                .into_body();
+            let body = super::combined_credits(
+                Path(person_id),
+                Extension(Arc::new(api_state)),
+                Query(query_args),
+            )
+            .await
+            .into_body();
+
+            details_mock.assert();
+            credits_mock.assert();
 
             let size = {
                 let size = body.size_hint();
@@ -220,15 +233,53 @@ mod get {
             }
             .unwrap();
 
-            let bytes = axum::body::to_bytes(body, size).await.unwrap();
+            axum::body::to_bytes(body, size).await.unwrap()
+        }
+
+        #[tokio::test]
+        async fn test_get() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs { size: None };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
 
             assert_eq!(
                 String::from_utf8_lossy(bytes.as_ref()),
                 include_str!("../../../../tests/assets/api/person/get_combined_credits_19498.xml")
             );
+        }
 
-            details_mock.assert();
-            credits_mock.assert();
+        #[tokio::test]
+        async fn test_size_default() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs { size: None };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            let credits = String::from_utf8_lossy(bytes.as_ref());
+            assert_eq!(credits.matches("<item>").count(), SIZE);
+        }
+
+        #[tokio::test]
+        async fn test_size_5() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs { size: Some(5) };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            let credits = String::from_utf8_lossy(bytes.as_ref());
+            assert_eq!(credits.matches("<item>").count(), 5);
+        }
+
+        #[tokio::test]
+        async fn test_size_30() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs { size: Some(30) };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            let credits = String::from_utf8_lossy(bytes.as_ref());
+            assert_eq!(credits.matches("<item>").count(), 30);
         }
 
         #[test]
