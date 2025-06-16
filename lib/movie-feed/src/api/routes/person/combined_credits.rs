@@ -212,7 +212,7 @@ mod get {
         }
 
         async fn combined_credits(person_id: i32, query_args: QueryArgs) -> axum::body::Bytes {
-            let (tmdb, _server, (details_mock, credits_mock)) = init(person_id).await;
+            let (tmdb, _server, _) = init(person_id).await;
 
             let api_state = ApiState { tmdb };
 
@@ -223,9 +223,6 @@ mod get {
             )
             .await
             .into_body();
-
-            details_mock.assert();
-            credits_mock.assert();
 
             let size = {
                 let size = body.size_hint();

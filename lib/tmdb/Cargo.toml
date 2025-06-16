@@ -25,6 +25,7 @@ http = {workspace = true}
 
 # Remote
 url = {version = "2.5.4", features = []}
+cached = {version = "0.55.1", features = ["async"], optional = true}
 
 [dev-dependencies]
 tmdb-test-utils = {workspace = true}
@@ -35,3 +36,4 @@ workspace = true
 [features]
 test_utils = []
 serde_serialize = []
+cached = ["dep:cached"]

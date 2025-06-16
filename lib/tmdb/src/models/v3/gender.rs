@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer};
 
 #[cfg_attr(feature = "serde_serialize", derive(serde::Serialize))]
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum Gender {
     NotSpecified,
     Female,

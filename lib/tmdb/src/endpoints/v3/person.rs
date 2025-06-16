@@ -2,6 +2,8 @@ use crate::Tmdb;
 use crate::endpoints::{RequestError, request};
 use crate::models::v3::person_details::PersonDetails;
 use crate::models::v3::tmdb_error::TmdbError;
+#[cfg(all(feature = "cached", not(test)))]
+use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
 
@@ -10,6 +12,14 @@ pub mod combined_credits;
 /// [GET: Person Details](https://developer.themoviedb.org/reference/person-details)
 ///
 /// Performs a get request on the `person/{person_id}` endpoint.
+#[cfg_attr(all(feature = "cached", not(test)), cached(
+    time = 3600, // 1 hour
+    time_refresh = false,
+    sync_writes = "by_key",
+    key = "i32",
+    convert = r##"{ person_id }"##,
+    result = true
+))]
 pub async fn get(tmdb: &Tmdb, person_id: i32) -> Result<PersonDetails, RequestError> {
     let path = format!("person/{person_id}");
 
