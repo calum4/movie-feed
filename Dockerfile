@@ -23,6 +23,6 @@ RUN apk add --no-cache curl
 COPY --from=builder /usr/local/cargo/bin/movie-feed movie-feed
 
 HEALTHCHECK --interval=15s --timeout=1s --retries=10 --start-period=15s \
-    CMD curl -sSf -o /dev/null "http://${LISTEN_ADDR:-127.0.0.1}:${LISTEN_PORT:-9000}/ok" || exit 1
+    CMD curl -sSf -o /dev/null "http://${LISTEN_ADDR:-127.0.0.1}:${LISTEN_PORT:-8080}/ok" || exit 1
 
 CMD ["/app/movie-feed"]
