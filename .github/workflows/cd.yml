@@ -108,8 +108,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-#            ${{ vars.DOCKERHUB_USERNAME }}/movie-feed
             ghcr.io/${{ github.repository }}
+#            ${{ vars.DOCKERHUB_USERNAME }}/movie-feed
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
