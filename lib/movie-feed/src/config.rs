@@ -1,8 +1,8 @@
 use axum_client_ip::ClientIpSource;
 use figment::Figment;
-use figment::providers::Env;
+use figment::providers::{Env, Serialized};
 use secrecy::SecretString;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::OnceLock;
@@ -25,18 +25,18 @@ pub(crate) fn config() -> &'static Config {
 struct EnvConfig {
     tmdb_token: Option<SecretString>,
     tmdb_token_file: Option<String>,
-    #[serde(default)]
     api: ApiConfig,
 }
 
 fn env_config() -> Config {
     let mut config: EnvConfig = Figment::new()
-        .merge(Env::prefixed("MOVIE_FEED_"))
+        .merge(Serialized::default("api", ApiConfig::default()))
+        .merge(Env::prefixed("MOVIE_FEED."))
         .extract()
         .expect("unable to construct environment config");
 
     if let Some(tmdb_token_file) = &config.tmdb_token_file {
-        let token = read_to_string(tmdb_token_file).expect("unable to read tmdb token file with the path provided in the MOVIE_FEED_TMDB_TOKEN_FILE environment variable");
+        let token = read_to_string(tmdb_token_file).expect("unable to read tmdb token file with the path provided in the MOVIE_FEED.TMDB_TOKEN_FILE environment variable");
 
         config.tmdb_token = Some(token.into());
     }
@@ -47,7 +47,7 @@ fn env_config() -> Config {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct ApiConfig {
     pub(crate) listen_address: IpAddr,
     pub(crate) listen_port: u16,
