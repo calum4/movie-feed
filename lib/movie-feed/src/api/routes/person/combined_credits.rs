@@ -198,6 +198,15 @@ mod get {
             description.push_str("\nLanguage: ");
             description.push_str(credit.original_language());
 
+            description.push_str("\nRelease Date: ");
+            match credit.release_date() {
+                None => description.push_str("TBA"),
+                Some(date) => {
+                    let date = date.format("%d-%b-%Y").to_string();
+                    description.push_str(date.as_str());
+                }
+            }
+
             if let Some(overview) = credit.overview() {
                 description.push_str("\n\n");
                 description.push_str(overview.as_str());
