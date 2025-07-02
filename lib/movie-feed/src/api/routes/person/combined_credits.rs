@@ -168,7 +168,7 @@ mod get {
         let mut channel = ChannelBuilder::default();
 
         channel
-            .title(format!("Combined Credits - {}", details.name))
+            .title(format!("{} - Combined Credits", details.name))
             .link(details.tmdb_url())
             .last_build_date(build_date.format("%a, %d %b %Y %H:%M %Z").to_string())
             .generator(Some(
