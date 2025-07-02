@@ -18,7 +18,7 @@ mod get {
     use axum::response::{IntoResponse, Response};
     #[cfg(test)]
     use chrono::{DateTime, NaiveDateTime, NaiveTime};
-    use chrono::{NaiveDate, Utc};
+    use chrono::{Datelike, NaiveDate, Utc};
     use itertools::Itertools;
     use rss::{ChannelBuilder, Item, ItemBuilder};
     use serde::Deserialize;
@@ -47,10 +47,59 @@ mod get {
         }
     }
 
-    #[derive(Deserialize)]
+    #[derive(Deserialize, Copy, Clone)]
+    enum ReleaseStatus {
+        Unreleased,
+        Released,
+        HasReleaseDate,
+        NoReleaseDate,
+        All,
+    }
+
+    impl Default for ReleaseStatus {
+        fn default() -> Self {
+            Self::HasReleaseDate
+        }
+    }
+
+    impl ReleaseStatus {
+        fn check(&self, release_date: Option<&NaiveDate>) -> bool {
+            match self {
+                Self::Unreleased => {
+                    let Some(date) = release_date else {
+                        return true;
+                    };
+
+                    let now = Utc::now();
+                    let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
+                        .expect("constructed from Utc::now(), should always be valid");
+
+                    date.gt(&now)
+                }
+                Self::Released => {
+                    let Some(date) = release_date else {
+                        return false;
+                    };
+
+                    let now = Utc::now();
+                    let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
+                        .expect("constructed from Utc::now(), should always be valid");
+
+                    date.le(&now)
+                }
+                Self::NoReleaseDate => release_date.is_none(),
+                Self::HasReleaseDate => release_date.is_some(),
+                Self::All => true,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Default)]
     pub(super) struct QueryArgs {
         #[serde(default)]
         size: Option<usize>,
+        #[serde(default)]
+        release_status: ReleaseStatus,
     }
 
     pub(super) async fn combined_credits(
@@ -82,7 +131,11 @@ mod get {
         let cast_iter = credits.cast.into_iter().map(Credit::Cast);
         let crew_iter = credits.crew.into_iter().map(Credit::Crew);
 
-        let mut credits = cast_iter.merge_by(crew_iter, |_a, _b| true).collect_vec();
+        let mut credits = cast_iter
+            .merge_by(crew_iter, |_a, _b| true)
+            .filter(|credit| query.release_status.check(credit.release_date()))
+            .collect_vec();
+
         credits.sort_by(|a, b| sort_release_date_descending(a.release_date(), b.release_date()));
 
         let items_size = query.size.unwrap_or(SIZE);
@@ -234,10 +287,13 @@ mod get {
         }
 
         #[tokio::test]
-        async fn test_get() {
+        async fn test_get_release_status_all() {
             const PERSON_ID: i32 = 19498;
 
-            let query_args = QueryArgs { size: None };
+            let query_args = QueryArgs {
+                release_status: ReleaseStatus::All,
+                ..QueryArgs::default()
+            };
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             assert_eq!(
@@ -247,10 +303,28 @@ mod get {
         }
 
         #[tokio::test]
+        async fn test_get_release_status_released() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs {
+                release_status: ReleaseStatus::Released,
+                ..QueryArgs::default()
+            };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            assert_eq!(
+                String::from_utf8_lossy(bytes.as_ref()),
+                include_str!(
+                    "../../../../tests/assets/api/person/get_combined_credits_19498_released.xml"
+                )
+            );
+        }
+
+        #[tokio::test]
         async fn test_size_default() {
             const PERSON_ID: i32 = 19498;
 
-            let query_args = QueryArgs { size: None };
+            let query_args = QueryArgs::default();
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
@@ -261,7 +335,10 @@ mod get {
         async fn test_size_5() {
             const PERSON_ID: i32 = 19498;
 
-            let query_args = QueryArgs { size: Some(5) };
+            let query_args = QueryArgs {
+                size: Some(5),
+                ..QueryArgs::default()
+            };
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
@@ -272,7 +349,10 @@ mod get {
         async fn test_size_30() {
             const PERSON_ID: i32 = 19498;
 
-            let query_args = QueryArgs { size: Some(30) };
+            let query_args = QueryArgs {
+                size: Some(30),
+                ..QueryArgs::default()
+            };
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
@@ -304,6 +384,38 @@ mod get {
             dates.sort_by(|a, b| sort_release_date_descending(a.as_ref(), b.as_ref()));
 
             assert_eq!(dates, sorted_dates);
+        }
+
+        #[test]
+        fn test_release_status() {
+            let now = Utc::now();
+            let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
+                .expect("constructed from Utc::now(), should always be valid");
+
+            assert!(ReleaseStatus::Unreleased.check(None));
+            assert!(!ReleaseStatus::Unreleased.check(Some(&NaiveDate::MIN)));
+            assert!(!ReleaseStatus::Unreleased.check(Some(&now)));
+            assert!(ReleaseStatus::Unreleased.check(Some(&NaiveDate::MAX)));
+
+            assert!(!ReleaseStatus::Released.check(None));
+            assert!(ReleaseStatus::Released.check(Some(&NaiveDate::MIN)));
+            assert!(ReleaseStatus::Released.check(Some(&now)));
+            assert!(!ReleaseStatus::Released.check(Some(&NaiveDate::MAX)));
+
+            assert!(!ReleaseStatus::HasReleaseDate.check(None));
+            assert!(ReleaseStatus::HasReleaseDate.check(Some(&NaiveDate::MIN)));
+            assert!(ReleaseStatus::HasReleaseDate.check(Some(&now)));
+            assert!(ReleaseStatus::HasReleaseDate.check(Some(&NaiveDate::MAX)));
+
+            assert!(ReleaseStatus::NoReleaseDate.check(None));
+            assert!(!ReleaseStatus::NoReleaseDate.check(Some(&NaiveDate::MIN)));
+            assert!(!ReleaseStatus::NoReleaseDate.check(Some(&now)));
+            assert!(!ReleaseStatus::NoReleaseDate.check(Some(&NaiveDate::MAX)));
+
+            assert!(ReleaseStatus::All.check(None));
+            assert!(ReleaseStatus::All.check(Some(&NaiveDate::MIN)));
+            assert!(ReleaseStatus::All.check(Some(&now)));
+            assert!(ReleaseStatus::All.check(Some(&NaiveDate::MAX)));
         }
     }
 }
