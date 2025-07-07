@@ -24,7 +24,7 @@ tmdb-macros = {path = "lib/tmdb-macros", version = "0.0.0"}
 tmdb-test-utils = {path = "lib/tmdb-test-utils", version = "0.0.0"}
 
 # Non-local crates
-tokio = {version = "1.46.0", features = ["rt", "rt-multi-thread", "macros"]}
+tokio = {version = "1.46.1", features = ["rt", "rt-multi-thread", "macros"]}
 tracing = {version = "0.1.41", features = []}
 tracing-subscriber = {version = "0.3.19", features = ["env-filter"]}
 reqwest = {version = "0.12.22", features = ["json", "native-tls-vendored"]}
