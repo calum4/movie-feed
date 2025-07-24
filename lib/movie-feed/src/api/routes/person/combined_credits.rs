@@ -20,9 +20,10 @@ mod get {
     use chrono::{DateTime, NaiveDateTime, NaiveTime};
     use chrono::{Datelike, NaiveDate, Utc};
     use itertools::Itertools;
-    use rss::{ChannelBuilder, Item, ItemBuilder};
+    use rss::{ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use serde::Deserialize;
     use std::cmp::Ordering;
+    use std::hash::{DefaultHasher, Hash, Hasher};
     use std::sync::Arc;
     use std::time::Duration;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
@@ -45,6 +46,27 @@ mod get {
             (Some(_), None) => Ordering::Greater,
             (Some(a), Some(b)) => b.cmp(a),
         }
+    }
+
+    /// A hash of the following fields of a Credit
+    /// - ID
+    /// - Title
+    /// - Release Date
+    /// - Media Type
+    /// - Credit Type
+    fn credit_guid(credit: &impl IsCredit) -> Guid {
+        let mut hasher = DefaultHasher::default();
+
+        credit.id().hash(&mut hasher);
+        credit.title().hash(&mut hasher);
+        credit.release_date().hash(&mut hasher);
+        credit.media_type().hash(&mut hasher);
+        credit.credit_type().hash(&mut hasher);
+
+        GuidBuilder::default()
+            .value(hasher.finish().to_string())
+            .permalink(false)
+            .build()
     }
 
     #[derive(Deserialize, Copy, Clone)]
@@ -144,28 +166,7 @@ mod get {
         for credit in credits.into_iter().take(items_size) {
             let mut item = ItemBuilder::default();
 
-            {
-                use rss::GuidBuilder;
-                use std::hash::{DefaultHasher, Hash, Hasher};
-
-                let mut hasher = DefaultHasher::new();
-
-                // More permissive hash for tests without sacrificing test quality
-                if cfg!(test) {
-                    credit.id().hash(&mut hasher);
-                } else {
-                    credit.hash(&mut hasher);
-                }
-
-                let hash = hasher.finish();
-
-                let guid = GuidBuilder::default()
-                    .value(hash.to_string())
-                    .permalink(true)
-                    .build();
-
-                item.guid(Some(guid));
-            }
+            item.guid(Some(credit_guid(&credit)));
 
             let mut description = credit
                 .overview_len()
