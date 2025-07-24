@@ -57,6 +57,11 @@ pub(crate) fn is_credit(input: proc_macro::TokenStream) -> proc_macro::TokenStre
         &ident,
         Ident::new("media_type", Span::call_site()),
     );
+    let credit_type = propagate_trait_method(
+        &input.data,
+        &ident,
+        Ident::new("credit_type", Span::call_site()),
+    );
 
     let expanded = quote! {
         impl #impl_generics crate::models::v3::credit::IsCredit for #ident #ty_generics #where_clause {
@@ -103,6 +108,11 @@ pub(crate) fn is_credit(input: proc_macro::TokenStream) -> proc_macro::TokenStre
             #[inline]
             fn media_type(&self) -> crate::models::v3::media_type::MediaType {
                 #media_type
+            }
+
+            #[inline]
+            fn credit_type(&self) -> crate::models::v3::credit::CreditType {
+                #credit_type
             }
         }
     };

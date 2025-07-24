@@ -1,4 +1,4 @@
-use crate::models::v3::credit::IsCredit;
+use crate::models::v3::credit::{CreditType, IsCredit};
 use crate::models::v3::genre_id::GenreId;
 use crate::models::v3::genres::{Genre, MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
@@ -111,6 +111,7 @@ where
 
 impl MovieCast {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
+    const CREDIT_TYPE: CreditType = CreditType::Cast;
 }
 
 impl IsCredit for MovieCast {
@@ -161,10 +162,16 @@ impl IsCredit for MovieCast {
     fn media_type(&self) -> MediaType {
         Self::MEDIA_TYPE
     }
+
+    #[inline]
+    fn credit_type(&self) -> CreditType {
+        Self::CREDIT_TYPE
+    }
 }
 
 impl TvCast {
     const MEDIA_TYPE: MediaType = MediaType::Tv;
+    const CREDIT_TYPE: CreditType = CreditType::Cast;
 }
 
 impl IsCredit for TvCast {
@@ -214,6 +221,11 @@ impl IsCredit for TvCast {
     #[inline]
     fn media_type(&self) -> MediaType {
         Self::MEDIA_TYPE
+    }
+
+    #[inline]
+    fn credit_type(&self) -> CreditType {
+        Self::CREDIT_TYPE
     }
 }
 
@@ -285,5 +297,11 @@ mod tests {
             cast.tmdb_media_url().as_str(),
             "https://www.themoviedb.org/tv/67178"
         );
+    }
+
+    #[test]
+    fn test_credit_type() {
+        assert_eq!(MovieCast::CREDIT_TYPE, CreditType::Cast);
+        assert_eq!(TvCast::CREDIT_TYPE, CreditType::Cast);
     }
 }

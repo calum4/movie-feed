@@ -25,6 +25,12 @@ impl From<Crew> for Credit {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum CreditType {
+    Cast,
+    Crew,
+}
+
 pub trait IsCredit {
     // Common Fields
     fn id(&self) -> usize;
@@ -39,6 +45,7 @@ pub trait IsCredit {
 
     // Other
     fn media_type(&self) -> MediaType;
+    fn credit_type(&self) -> CreditType;
 
     #[inline]
     fn tmdb_media_url(&self) -> Url {

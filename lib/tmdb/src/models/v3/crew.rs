@@ -1,7 +1,7 @@
 use crate::models::v3::cast::{
     deserialize_movie_genre, deserialize_release_date, deserialize_tv_genre,
 };
-use crate::models::v3::credit::IsCredit;
+use crate::models::v3::credit::{CreditType, IsCredit};
 use crate::models::v3::genres::{Genre, MovieGenre, TvGenre};
 use crate::models::v3::media_type::MediaType;
 use chrono::NaiveDate;
@@ -79,6 +79,7 @@ pub struct TvCrew {
 
 impl MovieCrew {
     const MEDIA_TYPE: MediaType = MediaType::Movie;
+    const CREDIT_TYPE: CreditType = CreditType::Crew;
 }
 
 impl IsCredit for MovieCrew {
@@ -129,10 +130,16 @@ impl IsCredit for MovieCrew {
     fn media_type(&self) -> MediaType {
         Self::MEDIA_TYPE
     }
+
+    #[inline]
+    fn credit_type(&self) -> CreditType {
+        Self::CREDIT_TYPE
+    }
 }
 
 impl TvCrew {
     const MEDIA_TYPE: MediaType = MediaType::Tv;
+    const CREDIT_TYPE: CreditType = CreditType::Crew;
 }
 
 impl IsCredit for TvCrew {
@@ -182,6 +189,11 @@ impl IsCredit for TvCrew {
     #[inline]
     fn media_type(&self) -> MediaType {
         Self::MEDIA_TYPE
+    }
+
+    #[inline]
+    fn credit_type(&self) -> CreditType {
+        Self::CREDIT_TYPE
     }
 }
 
@@ -255,5 +267,11 @@ mod tests {
             cast.tmdb_media_url().as_str(),
             "https://www.themoviedb.org/tv/236235"
         );
+    }
+
+    #[test]
+    fn test_credit_type() {
+        assert_eq!(MovieCrew::CREDIT_TYPE, CreditType::Crew);
+        assert_eq!(TvCrew::CREDIT_TYPE, CreditType::Crew);
     }
 }
