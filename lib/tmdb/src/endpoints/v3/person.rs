@@ -6,6 +6,8 @@ use crate::models::v3::tmdb_error::TmdbError;
 use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
+#[cfg(all(feature = "cached", not(test)))]
+use std::time::Duration;
 use tracing::{instrument, trace};
 
 pub mod combined_credits;

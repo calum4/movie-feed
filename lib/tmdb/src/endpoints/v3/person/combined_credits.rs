@@ -8,6 +8,8 @@ use cached::proc_macro::cached;
 use http::StatusCode;
 use reqwest::Method;
 use serde::Deserialize;
+#[cfg(all(feature = "cached", not(test)))]
+use std::time::Duration;
 use tracing::{instrument, trace};
 
 #[derive(Debug, Deserialize, Clone)]
