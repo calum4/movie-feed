@@ -21,7 +21,7 @@ mod get {
     use chrono::{DateTime, NaiveDateTime, NaiveTime};
     use chrono::{Datelike, NaiveDate, Utc};
     use itertools::Itertools;
-    use rss::{ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
+    use rss::{Category, ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use serde::Deserialize;
     use std::cmp::Ordering;
     use std::collections::HashSet;
@@ -182,6 +182,9 @@ mod get {
             let mut item = ItemBuilder::default();
 
             item.guid(Some(credit_guid(&credit)));
+            item.category(Category::from(sanitise_text(
+                credit.media_type().to_string(),
+            )));
 
             let mut description = credit
                 .overview_len()
@@ -193,7 +196,16 @@ mod get {
             match &credit {
                 Credit::Cast(cast) => {
                     description.push_str("Character: ");
-                    description.push_str(cast.character().map_or("TBA", |c| c.as_str()));
+
+                    match cast.character() {
+                        None => {
+                            description.push_str("TBA");
+                        }
+                        Some(character) => {
+                            description.push_str(character.as_str());
+                            item.category(Category::from(sanitise_text(character)));
+                        }
+                    }
                 }
                 Credit::Crew(crew) => {
                     description.push_str("Department: ");
@@ -211,6 +223,7 @@ mod get {
                 }
 
                 description.push_str(genre.name());
+                item.category(Category::from(genre.name()));
             });
 
             description.push_str("<br>Language: ");
@@ -265,7 +278,7 @@ mod get {
             .items(items);
 
         if let Some(bio) = details.biography {
-            channel.description(sanitise_text(bio.as_str()));
+            channel.description(sanitise_text(bio));
         }
 
         let rss = Rss::new(channel.build());
