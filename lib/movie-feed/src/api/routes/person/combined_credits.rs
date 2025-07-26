@@ -69,6 +69,13 @@ mod get {
             .build()
     }
 
+    #[inline]
+    fn sanitise_text<S: AsRef<str>>(text: S) -> String {
+        let mut s = text.as_ref().replace('\n', "<br>");
+
+        s
+    }
+
     #[derive(Deserialize, Copy, Clone)]
     enum ReleaseStatus {
         Unreleased,
@@ -173,6 +180,8 @@ mod get {
                 .map(String::with_capacity)
                 .unwrap_or(String::new());
 
+            description.push_str("<p>");
+
             match &credit {
                 Credit::Cast(cast) => {
                     description.push_str("Character: ");
@@ -182,12 +191,12 @@ mod get {
                     description.push_str("Department: ");
                     description.push_str(crew.department());
 
-                    description.push_str("\nJob: ");
+                    description.push_str("<br>Job: ");
                     description.push_str(crew.job());
                 }
             };
 
-            description.push_str("\nGenres: ");
+            description.push_str("<br>Genres: ");
             credit.genres().iter().enumerate().for_each(|(i, genre)| {
                 if i > 0 {
                     description.push_str(", ");
@@ -196,10 +205,10 @@ mod get {
                 description.push_str(genre.name());
             });
 
-            description.push_str("\nLanguage: ");
+            description.push_str("<br>Language: ");
             description.push_str(credit.original_language());
 
-            description.push_str("\nRelease Date: ");
+            description.push_str("<br>Release Date: ");
             match credit.release_date() {
                 None => description.push_str("TBA"),
                 Some(date) => {
@@ -209,13 +218,14 @@ mod get {
             }
 
             if let Some(overview) = credit.overview() {
-                description.push_str("\n\n");
+                description.push_str("</p><p>");
                 description.push_str(overview.as_str());
+                description.push_str("</p>");
             }
 
             item.link(credit.tmdb_media_url().to_string())
                 .title(Some(credit.title().to_string()))
-                .description(description);
+                .description(sanitise_text(description));
 
             items.push(item.build());
         }
@@ -244,7 +254,7 @@ mod get {
             .items(items);
 
         if let Some(bio) = details.biography {
-            channel.description(bio);
+            channel.description(sanitise_text(bio.as_str()));
         }
 
         let rss = Rss::new(channel.build());
