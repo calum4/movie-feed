@@ -33,6 +33,7 @@ axum-client-ip = {version = "1.1.3", features = []}
 rss = {version = "2.0.12", features = []}
 itertools = {version = "0.14.0", features = []}
 mime = {version = "0.3.17", features = []}
+ammonia = {version = "4.1.1", features = []}
 
 [dev-dependencies]
 tmdb = {workspace = true, features = ["test_utils"]}

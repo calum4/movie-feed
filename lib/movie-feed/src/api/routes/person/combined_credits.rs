@@ -13,6 +13,7 @@ mod get {
     use crate::api::ApiState;
     use crate::api::process_result::{ProcessedResponse, process_response};
     use crate::api::rss::Rss;
+    use ammonia::Builder;
     use axum::Extension;
     use axum::extract::{Path, Query};
     use axum::response::{IntoResponse, Response};
@@ -23,6 +24,7 @@ mod get {
     use rss::{ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use serde::Deserialize;
     use std::cmp::Ordering;
+    use std::collections::HashSet;
     use std::hash::{DefaultHasher, Hash, Hasher};
     use std::sync::Arc;
     use std::time::Duration;
@@ -72,6 +74,12 @@ mod get {
     #[inline]
     fn sanitise_text<S: AsRef<str>>(text: S) -> String {
         let mut s = text.as_ref().replace('\n', "<br>");
+
+        let mut tags = HashSet::new();
+        tags.insert("br");
+        tags.insert("p");
+
+        s = Builder::new().tags(tags).clean(s.as_ref()).to_string();
 
         s
     }
@@ -241,7 +249,10 @@ mod get {
         let mut channel = ChannelBuilder::default();
 
         channel
-            .title(format!("{} - Combined Credits", details.name))
+            .title(sanitise_text(format!(
+                "{} - Combined Credits",
+                details.name
+            )))
             .link(details.tmdb_url())
             .last_build_date(build_date.format("%a, %d %b %Y %H:%M %Z").to_string())
             .generator(Some(
