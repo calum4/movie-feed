@@ -19,13 +19,15 @@ mod get {
     use axum::response::{IntoResponse, Response};
     #[cfg(test)]
     use chrono::{DateTime, NaiveDateTime, NaiveTime};
-    use chrono::{Datelike, NaiveDate, Utc};
+    use chrono::{Datelike, NaiveDate, TimeDelta, Utc};
     use itertools::Itertools;
     use rss::{Category, ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
-    use serde::Deserialize;
+    use serde::{Deserialize, Deserializer};
+    use serde_utils::deserialize_default_from_empty_object;
     use std::cmp::Ordering;
     use std::collections::HashSet;
     use std::hash::{DefaultHasher, Hash, Hasher};
+    use std::str::FromStr;
     use std::sync::Arc;
     use std::time::Duration;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
@@ -85,24 +87,109 @@ mod get {
     }
 
     #[derive(Deserialize, Copy, Clone)]
+    #[serde(tag = "release_status")]
     enum ReleaseStatus {
-        Unreleased,
-        Released,
-        HasReleaseDate,
+        Unreleased {
+            #[serde(default, deserialize_with = "deserialize_time_delta")]
+            max_time_until_release: Option<TimeDelta>,
+        },
+        Released {
+            #[serde(default, deserialize_with = "deserialize_time_delta")]
+            max_age: Option<TimeDelta>,
+            #[serde(default, deserialize_with = "deserialize_time_delta")]
+            min_age: Option<TimeDelta>,
+        },
+        HasReleaseDate {
+            #[serde(default, deserialize_with = "deserialize_time_delta")]
+            max_time_until_release: Option<TimeDelta>,
+            #[serde(default, deserialize_with = "deserialize_time_delta")]
+            max_age: Option<TimeDelta>,
+        },
         NoReleaseDate,
         All,
     }
 
+    pub(super) fn deserialize_time_delta<'de, D>(
+        deserializer: D,
+    ) -> Result<Option<TimeDelta>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let str: &str = Deserialize::deserialize(deserializer)?;
+        let duration = humantime::Duration::from_str(str).map_err(serde::de::Error::custom)?;
+
+        TimeDelta::from_std(*duration)
+            .map(Into::into)
+            .map_err(serde::de::Error::custom)
+    }
+
     impl Default for ReleaseStatus {
         fn default() -> Self {
-            Self::HasReleaseDate
+            Self::HasReleaseDate {
+                max_time_until_release: None,
+                max_age: None,
+            }
         }
     }
 
     impl ReleaseStatus {
+        fn check_max_time_until_release(
+            now: &NaiveDate,
+            release_date: &NaiveDate,
+            max_time_until_release: &Option<TimeDelta>,
+        ) -> bool {
+            if let Some(max_time_until_release) = max_time_until_release {
+                let Some(max_release_date) = now.checked_add_signed(*max_time_until_release) else {
+                    return false;
+                };
+
+                return release_date.lt(&max_release_date);
+            }
+
+            true
+        }
+
+        fn check_max_age(
+            now: &NaiveDate,
+            release_date: &NaiveDate,
+            max_age: &Option<TimeDelta>,
+        ) -> bool {
+            if let Some(max_age) = max_age {
+                let Some(max_age_date) = now.checked_sub_signed(*max_age) else {
+                    return false;
+                };
+
+                if release_date.lt(&max_age_date) {
+                    return false;
+                }
+            }
+
+            true
+        }
+
+        fn check_min_age(
+            now: &NaiveDate,
+            release_date: &NaiveDate,
+            min_age: &Option<TimeDelta>,
+        ) -> bool {
+            if let Some(min_age) = min_age {
+                let Some(min_age_date) = now.checked_sub_signed(*min_age) else {
+                    return false;
+                };
+
+                if release_date.gt(&min_age_date) {
+                    return false;
+                }
+            }
+
+            true
+        }
+
         fn check(&self, release_date: Option<&NaiveDate>) -> bool {
             match self {
-                Self::Unreleased => {
+                Self::Unreleased {
+                    max_time_until_release,
+                } => {
                     let Some(date) = release_date else {
                         return true;
                     };
@@ -112,8 +199,13 @@ mod get {
                         .expect("constructed from Utc::now(), should always be valid");
 
                     date.gt(&now)
+                        && ReleaseStatus::check_max_time_until_release(
+                            &now,
+                            date,
+                            max_time_until_release,
+                        )
                 }
-                Self::Released => {
+                Self::Released { max_age, min_age } => {
                     let Some(date) = release_date else {
                         return false;
                     };
@@ -123,9 +215,25 @@ mod get {
                         .expect("constructed from Utc::now(), should always be valid");
 
                     date.le(&now)
+                        && ReleaseStatus::check_max_age(&now, date, max_age)
+                        && ReleaseStatus::check_min_age(&now, date, min_age)
+                }
+                Self::HasReleaseDate {
+                    max_time_until_release,
+                    max_age,
+                } => {
+                    let Some(date) = release_date else {
+                        return false;
+                    };
+
+                    let now = Utc::now();
+                    let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
+                        .expect("constructed from Utc::now(), should always be valid");
+
+                    ReleaseStatus::check_max_time_until_release(&now, date, max_time_until_release)
+                        && ReleaseStatus::check_max_age(&now, date, max_age)
                 }
                 Self::NoReleaseDate => release_date.is_none(),
-                Self::HasReleaseDate => release_date.is_some(),
                 Self::All => true,
             }
         }
@@ -135,7 +243,7 @@ mod get {
     pub(super) struct QueryArgs {
         #[serde(default)]
         size: Option<usize>,
-        #[serde(default)]
+        #[serde(flatten, deserialize_with = "deserialize_default_from_empty_object")]
         release_status: ReleaseStatus,
     }
 
@@ -289,6 +397,7 @@ mod get {
     mod tests {
         use super::*;
         use axum::body::HttpBody;
+        use chrono::{Days, Months};
         use tmdb::Tmdb;
         use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
         use tmdb_test_utils::api::v3::person::mock_get_person_details;
@@ -351,7 +460,10 @@ mod get {
             const PERSON_ID: i32 = 19498;
 
             let query_args = QueryArgs {
-                release_status: ReleaseStatus::Released,
+                release_status: ReleaseStatus::Released {
+                    max_age: Default::default(),
+                    min_age: Default::default(),
+                },
                 ..QueryArgs::default()
             };
             let bytes = combined_credits(PERSON_ID, query_args).await;
@@ -430,31 +542,147 @@ mod get {
             assert_eq!(dates, sorted_dates);
         }
 
-        #[test]
-        fn test_release_status() {
+        struct ReleaseStatusInit {
+            now: NaiveDate,
+
+            past_one_week: NaiveDate,
+            future_one_week: NaiveDate,
+
+            past_one_month: NaiveDate,
+            future_one_month: NaiveDate,
+
+            past_one_year: NaiveDate,
+            future_one_year: NaiveDate,
+        }
+
+        fn init_release_status() -> ReleaseStatusInit {
             let now = Utc::now();
             let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
                 .expect("constructed from Utc::now(), should always be valid");
 
-            assert!(ReleaseStatus::Unreleased.check(None));
-            assert!(!ReleaseStatus::Unreleased.check(Some(&NaiveDate::MIN)));
-            assert!(!ReleaseStatus::Unreleased.check(Some(&now)));
-            assert!(ReleaseStatus::Unreleased.check(Some(&NaiveDate::MAX)));
+            ReleaseStatusInit {
+                now,
+                past_one_week: now.checked_sub_days(Days::new(7)).unwrap(),
+                future_one_week: now.checked_add_days(Days::new(7)).unwrap(),
+                past_one_month: now.checked_sub_months(Months::new(1)).unwrap(),
+                future_one_month: now.checked_add_months(Months::new(1)).unwrap(),
+                past_one_year: now.checked_sub_months(Months::new(12)).unwrap(),
+                future_one_year: now.checked_add_months(Months::new(12)).unwrap(),
+            }
+        }
 
-            assert!(!ReleaseStatus::Released.check(None));
-            assert!(ReleaseStatus::Released.check(Some(&NaiveDate::MIN)));
-            assert!(ReleaseStatus::Released.check(Some(&now)));
-            assert!(!ReleaseStatus::Released.check(Some(&NaiveDate::MAX)));
+        #[test]
+        fn test_release_status_unreleased() {
+            let data = init_release_status();
+            let now = data.now;
 
-            assert!(!ReleaseStatus::HasReleaseDate.check(None));
-            assert!(ReleaseStatus::HasReleaseDate.check(Some(&NaiveDate::MIN)));
-            assert!(ReleaseStatus::HasReleaseDate.check(Some(&now)));
-            assert!(ReleaseStatus::HasReleaseDate.check(Some(&NaiveDate::MAX)));
+            let unreleased = ReleaseStatus::Unreleased {
+                max_time_until_release: None,
+            };
+
+            assert!(unreleased.check(None));
+            assert!(!unreleased.check(Some(&NaiveDate::MIN)));
+            assert!(!unreleased.check(Some(&now)));
+            assert!(unreleased.check(Some(&NaiveDate::MAX)));
+
+            let unreleased = ReleaseStatus::Unreleased {
+                max_time_until_release: Some(TimeDelta::weeks(6)),
+            };
+
+            assert!(unreleased.check(None));
+            assert!(!unreleased.check(Some(&NaiveDate::MIN)));
+            assert!(!unreleased.check(Some(&now)));
+            assert!(!unreleased.check(Some(&NaiveDate::MAX)));
+
+            assert!(!unreleased.check(Some(&data.past_one_week)));
+            assert!(unreleased.check(Some(&data.future_one_week)));
+            assert!(!unreleased.check(Some(&data.past_one_month)));
+            assert!(unreleased.check(Some(&data.future_one_month)));
+            assert!(!unreleased.check(Some(&data.past_one_year)));
+            assert!(!unreleased.check(Some(&data.future_one_year)));
+        }
+
+        #[test]
+        fn test_release_status_released() {
+            let data = init_release_status();
+            let now = data.now;
+
+            let released = ReleaseStatus::Released {
+                max_age: None,
+                min_age: None,
+            };
+
+            assert!(!released.check(None));
+            assert!(released.check(Some(&NaiveDate::MIN)));
+            assert!(released.check(Some(&now)));
+            assert!(!released.check(Some(&NaiveDate::MAX)));
+
+            let released = ReleaseStatus::Released {
+                max_age: Some(TimeDelta::weeks(6)),
+                min_age: Some(TimeDelta::weeks(2)),
+            };
+
+            assert!(!released.check(None));
+            assert!(!released.check(Some(&NaiveDate::MIN)));
+            assert!(!released.check(Some(&now)));
+            assert!(!released.check(Some(&NaiveDate::MAX)));
+
+            assert!(!released.check(Some(&data.past_one_week)));
+            assert!(!released.check(Some(&data.future_one_week)));
+            assert!(released.check(Some(&data.past_one_month)));
+            assert!(!released.check(Some(&data.future_one_month)));
+            assert!(!released.check(Some(&data.past_one_year)));
+            assert!(!released.check(Some(&data.future_one_year)));
+        }
+
+        #[test]
+        fn test_release_status_has_release_date() {
+            let data = init_release_status();
+            let now = data.now;
+
+            let has_release_date = ReleaseStatus::HasReleaseDate {
+                max_time_until_release: None,
+                max_age: None,
+            };
+
+            assert!(!has_release_date.check(None));
+            assert!(has_release_date.check(Some(&NaiveDate::MIN)));
+            assert!(has_release_date.check(Some(&now)));
+            assert!(has_release_date.check(Some(&NaiveDate::MAX)));
+
+            let has_release_date = ReleaseStatus::HasReleaseDate {
+                max_time_until_release: Some(TimeDelta::weeks(2)),
+                max_age: Some(TimeDelta::weeks(6)),
+            };
+
+            assert!(!has_release_date.check(None));
+            assert!(!has_release_date.check(Some(&NaiveDate::MIN)));
+            assert!(has_release_date.check(Some(&now)));
+            assert!(!has_release_date.check(Some(&NaiveDate::MAX)));
+
+            assert!(has_release_date.check(Some(&data.past_one_week)));
+            assert!(has_release_date.check(Some(&data.future_one_week)));
+            assert!(has_release_date.check(Some(&data.past_one_month)));
+            assert!(!has_release_date.check(Some(&data.future_one_month)));
+            assert!(!has_release_date.check(Some(&data.past_one_year)));
+            assert!(!has_release_date.check(Some(&data.future_one_year)));
+        }
+
+        #[test]
+        fn test_release_status_no_release_date() {
+            let data = init_release_status();
+            let now = data.now;
 
             assert!(ReleaseStatus::NoReleaseDate.check(None));
             assert!(!ReleaseStatus::NoReleaseDate.check(Some(&NaiveDate::MIN)));
             assert!(!ReleaseStatus::NoReleaseDate.check(Some(&now)));
             assert!(!ReleaseStatus::NoReleaseDate.check(Some(&NaiveDate::MAX)));
+        }
+
+        #[test]
+        fn test_release_status_all() {
+            let data = init_release_status();
+            let now = data.now;
 
             assert!(ReleaseStatus::All.check(None));
             assert!(ReleaseStatus::All.check(Some(&NaiveDate::MIN)));
