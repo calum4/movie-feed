@@ -86,7 +86,7 @@ mod get {
         s
     }
 
-    #[derive(Deserialize, Copy, Clone)]
+    #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
     #[serde(tag = "release_status")]
     enum ReleaseStatus {
         Unreleased {
@@ -239,7 +239,7 @@ mod get {
         }
     }
 
-    #[derive(Deserialize, Default)]
+    #[derive(Deserialize, Default, Debug, Eq, PartialEq)]
     pub(super) struct QueryArgs {
         #[serde(default)]
         size: Option<usize>,
@@ -397,6 +397,7 @@ mod get {
     mod tests {
         use super::*;
         use axum::body::HttpBody;
+        use axum::http::Uri;
         use chrono::{Days, Months};
         use tmdb::Tmdb;
         use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
@@ -688,6 +689,148 @@ mod get {
             assert!(ReleaseStatus::All.check(Some(&NaiveDate::MIN)));
             assert!(ReleaseStatus::All.check(Some(&now)));
             assert!(ReleaseStatus::All.check(Some(&NaiveDate::MAX)));
+        }
+
+        #[test]
+        fn test_query_args_default_deserialisation() {
+            let uri = Uri::from_static(r##"https://example.com"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            assert_eq!(query.unwrap().0, QueryArgs::default());
+        }
+
+        #[test]
+        fn test_query_args_size_deserialisation() {
+            let uri = Uri::from_static(r##"https://example.com?size=10"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    size: Some(10),
+                    ..Default::default()
+                }
+            );
+
+            let uri = Uri::from_static(r##"https://example.com?size=-5"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            assert!(query.is_err());
+        }
+
+        #[test]
+        fn test_query_args_release_status_deserialisation() {
+            // Unreleased
+            let uri = Uri::from_static(r##"https://example.com?release_status=Unreleased"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::Unreleased {
+                max_time_until_release: None,
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            let uri = Uri::from_static(
+                r##"https://example.com?release_status=Unreleased&max_time_until_release=5m"##,
+            );
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::Unreleased {
+                max_time_until_release: Some(TimeDelta::minutes(5)),
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            // Released
+            let uri = Uri::from_static(r##"https://example.com?release_status=Released"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::Released {
+                max_age: None,
+                min_age: None,
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            let uri = Uri::from_static(
+                r##"https://example.com?release_status=Released&max_age=5h&min_age=5m"##,
+            );
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::Released {
+                max_age: Some(TimeDelta::hours(5)),
+                min_age: Some(TimeDelta::minutes(5)),
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            // HasReleaseDate
+            let uri = Uri::from_static(r##"https://example.com?release_status=HasReleaseDate"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::HasReleaseDate {
+                max_time_until_release: None,
+                max_age: None,
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            let uri = Uri::from_static(
+                r##"https://example.com?release_status=HasReleaseDate&max_time_until_release=52w&max_age=5h"##,
+            );
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::HasReleaseDate {
+                max_time_until_release: Some(TimeDelta::weeks(52)),
+                max_age: Some(TimeDelta::hours(5)),
+            };
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            // NoReleaseDate
+            let uri = Uri::from_static(r##"https://example.com?release_status=NoReleaseDate"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::NoReleaseDate;
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
+
+            // All
+            let uri = Uri::from_static(r##"https://example.com?release_status=All"##);
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            let release_status = ReleaseStatus::All;
+            assert_eq!(
+                query.unwrap().0,
+                QueryArgs {
+                    release_status,
+                    ..Default::default()
+                }
+            );
         }
     }
 }
