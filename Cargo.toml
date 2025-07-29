@@ -22,6 +22,7 @@ serde-utils = {path = "lib/serde-utils", version = "0.0.0"}
 tmdb = {path = "lib/tmdb", version = "0.0.0"}
 tmdb-macros = {path = "lib/tmdb-macros", version = "0.0.0"}
 tmdb-test-utils = {path = "lib/tmdb-test-utils", version = "0.0.0"}
+utils = {path = "lib/utils", version = "0.0.0"}
 
 # Non-local crates
 tokio = {version = "1.47.0", features = ["rt", "rt-multi-thread", "macros"]}
