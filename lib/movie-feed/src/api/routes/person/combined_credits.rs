@@ -23,13 +23,14 @@ mod get {
     use itertools::Itertools;
     use rss::{Category, ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use serde::{Deserialize, Deserializer};
-    use serde_utils::deserialize_default_from_empty_object;
     use std::cmp::Ordering;
     use std::collections::HashSet;
+    use std::fmt::{Display, Formatter};
     use std::hash::{DefaultHasher, Hash, Hasher};
     use std::str::FromStr;
     use std::sync::Arc;
     use std::time::Duration;
+    use thiserror::Error;
     use tmdb::endpoints::v3::person::combined_credits::get as get_combined_credits;
     use tmdb::endpoints::v3::person::get as get_person_details;
     use tmdb::models::v3::credit::{Credit, IsCredit};
@@ -243,8 +244,42 @@ mod get {
     pub(super) struct QueryArgs {
         #[serde(default)]
         size: Option<usize>,
-        #[serde(flatten, deserialize_with = "deserialize_default_from_empty_object")]
+        #[serde(flatten, deserialize_with = "deserialize_release_status")]
         release_status: ReleaseStatus,
+    }
+
+    #[derive(Copy, Clone, Debug, Eq, PartialEq, Error)]
+    enum ReleaseStatusError {
+        MaxAgeSmaller,
+    }
+
+    impl ReleaseStatusError {
+        fn text(&self) -> &'static str {
+            match self {
+                ReleaseStatusError::MaxAgeSmaller => "max_age must be larger than min_age",
+            }
+        }
+    }
+
+    impl Display for ReleaseStatusError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            f.write_str(self.text())
+        }
+    }
+
+    fn deserialize_release_status<'de, D>(deserializer: D) -> Result<ReleaseStatus, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let release = ReleaseStatus::deserialize(deserializer).unwrap_or_default();
+
+        if let ReleaseStatus::Released { max_age, min_age } = &release {
+            if max_age < min_age {
+                return Err(serde::de::Error::custom(ReleaseStatusError::MaxAgeSmaller));
+            }
+        }
+
+        Ok(release)
     }
 
     pub(super) async fn combined_credits(
@@ -775,6 +810,18 @@ mod get {
                     release_status,
                     ..Default::default()
                 }
+            );
+
+            let uri = Uri::from_static(
+                r##"https://example.com?release_status=Released&max_age=1s&min_age=5m"##,
+            );
+            let query = Query::<QueryArgs>::try_from_uri(&uri);
+            assert_eq!(
+                query.unwrap_err().to_string(),
+                format!(
+                    "Failed to deserialize query string: {}",
+                    ReleaseStatusError::MaxAgeSmaller.text()
+                )
             );
 
             // HasReleaseDate
