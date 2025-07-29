@@ -35,9 +35,16 @@ mod get {
     use tmdb::endpoints::v3::person::get as get_person_details;
     use tmdb::models::v3::credit::{Credit, IsCredit};
     use tracing::warn;
+    use utils::const_assert;
 
     const TTL: Duration = Duration::from_secs(60 * 60); // 60 minutes
-    const SIZE: usize = 20;
+
+    const DEFAULT_SIZE: usize = 20;
+    const MAX_SIZE: usize = 50;
+    const_assert!(
+        DEFAULT_SIZE <= MAX_SIZE,
+        "MAX_SIZE must not exceed DEFAULT_SIZE"
+    );
 
     #[cfg(test)]
     const TEST_BUILD_DATE: NaiveDate = NaiveDate::from_ymd_opt(2025, 5, 21).unwrap();
@@ -240,12 +247,21 @@ mod get {
         }
     }
 
-    #[derive(Deserialize, Default, Debug, Eq, PartialEq)]
+    #[derive(Deserialize, Debug, Eq, PartialEq)]
     pub(super) struct QueryArgs {
-        #[serde(default)]
-        size: Option<usize>,
+        #[serde(default = "serde_utils::defaults::default_usize::<DEFAULT_SIZE>")]
+        size: usize,
         #[serde(flatten, deserialize_with = "deserialize_release_status")]
         release_status: ReleaseStatus,
+    }
+
+    impl Default for QueryArgs {
+        fn default() -> Self {
+            Self {
+                size: DEFAULT_SIZE,
+                release_status: Default::default(),
+            }
+        }
     }
 
     #[derive(Copy, Clone, Debug, Eq, PartialEq, Error)]
@@ -318,7 +334,7 @@ mod get {
 
         credits.sort_by(|a, b| sort_release_date_descending(a.release_date(), b.release_date()));
 
-        let items_size = query.size.unwrap_or(SIZE);
+        let items_size = query.size.min(MAX_SIZE);
         let mut items: Vec<Item> = Vec::with_capacity(items_size);
 
         for credit in credits.into_iter().take(items_size) {
@@ -520,7 +536,7 @@ mod get {
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
-            assert_eq!(credits.matches("<item>").count(), SIZE);
+            assert_eq!(credits.matches("<item>").count(), DEFAULT_SIZE);
         }
 
         #[tokio::test]
@@ -528,7 +544,7 @@ mod get {
             const PERSON_ID: i32 = 19498;
 
             let query_args = QueryArgs {
-                size: Some(5),
+                size: 5,
                 ..QueryArgs::default()
             };
             let bytes = combined_credits(PERSON_ID, query_args).await;
@@ -542,13 +558,27 @@ mod get {
             const PERSON_ID: i32 = 19498;
 
             let query_args = QueryArgs {
-                size: Some(30),
+                size: 30,
                 ..QueryArgs::default()
             };
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
             assert_eq!(credits.matches("<item>").count(), 30);
+        }
+
+        #[tokio::test]
+        async fn test_size_max() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs {
+                size: usize::MAX,
+                ..QueryArgs::default()
+            };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            let credits = String::from_utf8_lossy(bytes.as_ref());
+            assert_eq!(credits.matches("<item>").count(), MAX_SIZE);
         }
 
         #[test]
@@ -740,7 +770,7 @@ mod get {
             assert_eq!(
                 query.unwrap().0,
                 QueryArgs {
-                    size: Some(10),
+                    size: 10,
                     ..Default::default()
                 }
             );

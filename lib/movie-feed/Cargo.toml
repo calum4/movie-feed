@@ -16,6 +16,7 @@ readme.workspace = true
 # Local crates
 tmdb = {workspace = true, features = ["cached"]}
 serde-utils = {workspace = true, features = []}
+utils = {workspace = true, features = []}
 
 # Non-local crates
 tokio = {workspace = true}

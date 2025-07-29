@@ -1,3 +1,5 @@
+pub mod defaults;
+
 use serde::{Deserialize, Deserializer};
 
 pub const fn bool_true() -> bool {
