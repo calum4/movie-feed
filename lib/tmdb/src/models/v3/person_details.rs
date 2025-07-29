@@ -7,7 +7,7 @@ use url::Url;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct PersonDetails {
-    #[serde(default = "serde_utils::bool_true")]
+    #[serde(default = "serde_utils::defaults::default_bool::<true>")]
     pub adult: bool,
     #[serde(default = "serde_utils::vec_zero_size")]
     pub also_known_as: Vec<String>,
