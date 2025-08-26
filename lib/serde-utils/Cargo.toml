@@ -14,7 +14,7 @@ readme.workspace = true
 serde = {workspace = true}
 
 [dev-dependencies]
-serde_json = {version = "1.0.141", features = []}
+serde_json = {version = "1.0.143", features = []}
 
 [lints]
 workspace = true
