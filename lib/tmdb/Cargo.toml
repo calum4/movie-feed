@@ -24,7 +24,7 @@ thiserror = {workspace = true}
 http = {workspace = true}
 
 # Remote
-url = {version = "2.5.4", features = []}
+url = {version = "2.5.7", features = []}
 cached = {version = "0.56.0", features = ["async"], optional = true}
 
 [dev-dependencies]
