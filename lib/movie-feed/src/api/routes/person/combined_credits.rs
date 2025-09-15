@@ -96,24 +96,64 @@ mod get {
 
     #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
     #[serde(tag = "release_status")]
+    /// Release date constraints used for selecting credits which fall within the defined range
     enum ReleaseStatus {
+        /// Unreleased Credits
+        ///
+        /// # Default
+        /// `Unreleased { max_time_until_release: None }`
+        ///
+        /// # Examples
+        /// - `Unreleased { max_time_until_release: None }` - All unreleased credits
+        /// - `Unreleased { max_time_until_release: Some("2 months") }` - All unreleased credits
+        ///   that are no older than 2 months
         Unreleased {
             #[serde(default, deserialize_with = "deserialize_time_delta")]
             max_time_until_release: Option<TimeDelta>,
         },
+        /// Released Credits
+        ///
+        /// # Default
+        /// `Released { max_age: None, min_age: None}`
+        ///
+        /// # Examples
+        /// - `Released { max_age: None, min_age: None}` - All released credits
+        /// - `Released { max_age: Some("4 months"), min_age: None}` - Credits which released less
+        ///   than 4 months ago
+        /// - `Released { max_age: None, min_age: Some("2 months")}` - Credits which released more
+        ///   than 2 months ago
+        /// - `Released { max_age: Some("4 months"), min_age: Some("2 months")}` - Credits which
+        ///   released more than 2 months ago and less than 4 months ago
         Released {
             #[serde(default, deserialize_with = "deserialize_time_delta")]
             max_age: Option<TimeDelta>,
             #[serde(default, deserialize_with = "deserialize_time_delta")]
             min_age: Option<TimeDelta>,
         },
+        /// Credits with a set release date
+        ///
+        /// # Default
+        /// `HasReleaseDate { max_time_until_release: None, max_age: None}`
+        ///
+        /// # Examples
+        /// - `HasReleaseDate { max_time_until_release: None, max_age: None}` - All released or
+        ///   unreleased credits which have a set release date
+        /// - `HasReleaseDate { max_time_until_release: Some("2 months"), max_age: None}` - All
+        ///   released credits and unreleased credits which release in no more than 2 months
+        /// - `HasReleaseDate { max_time_until_release: None, max_age: Some("4 months")}` - All
+        ///   unreleased credits and released credits which released no more than 4 months ago
+        /// - `HasReleaseDate { max_time_until_release: Some("2 months"), max_age: Some("4 months")}`
+        ///   \- All released credits which released no more than 4 months ago, and all unreleased
+        ///   credits which release in no more than 2 months
         HasReleaseDate {
             #[serde(default, deserialize_with = "deserialize_time_delta")]
             max_time_until_release: Option<TimeDelta>,
             #[serde(default, deserialize_with = "deserialize_time_delta")]
             max_age: Option<TimeDelta>,
         },
+        /// All credits without a release date
         NoReleaseDate,
+        /// All credits
         All,
     }
 
@@ -250,8 +290,10 @@ mod get {
     #[derive(Deserialize, Debug, Eq, PartialEq)]
     pub(super) struct QueryArgs {
         #[serde(default = "serde_utils::defaults::default_usize::<DEFAULT_SIZE>")]
+        /// Number of credits to return
         size: usize,
         #[serde(flatten, deserialize_with = "deserialize_release_status")]
+        /// The release status of the credits to return
         release_status: ReleaseStatus,
     }
 
