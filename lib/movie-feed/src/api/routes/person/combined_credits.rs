@@ -1,3 +1,5 @@
+mod sort_order;
+
 use axum::Router;
 use axum::http::StatusCode;
 use axum::routing::get;
@@ -12,6 +14,7 @@ mod get {
     use super::*;
     use crate::api::ApiState;
     use crate::api::process_result::{ProcessedResponse, process_response};
+    use crate::api::routes::person::combined_credits::sort_order::SortReleaseDates;
     use crate::api::rss::Rss;
     use ammonia::Builder;
     use axum::Extension;
@@ -23,7 +26,6 @@ mod get {
     use itertools::Itertools;
     use rss::{Category, ChannelBuilder, Guid, GuidBuilder, Item, ItemBuilder};
     use serde::{Deserialize, Deserializer};
-    use std::cmp::Ordering;
     use std::collections::HashSet;
     use std::fmt::{Display, Formatter};
     use std::hash::{DefaultHasher, Hash, Hasher};
@@ -50,15 +52,6 @@ mod get {
     const TEST_BUILD_DATE: NaiveDate = NaiveDate::from_ymd_opt(2025, 5, 21).unwrap();
     #[cfg(test)]
     const TEST_BUILD_TIME: NaiveTime = NaiveTime::from_hms_opt(18, 20, 44).unwrap();
-
-    fn sort_release_date_descending(a: Option<&NaiveDate>, b: Option<&NaiveDate>) -> Ordering {
-        match (a, b) {
-            (None, None) => Ordering::Equal,
-            (None, Some(_)) => Ordering::Less,
-            (Some(_), None) => Ordering::Greater,
-            (Some(a), Some(b)) => b.cmp(a),
-        }
-    }
 
     /// A hash of the following fields of a Credit
     /// - ID
@@ -295,6 +288,8 @@ mod get {
         #[serde(flatten, deserialize_with = "deserialize_release_status")]
         /// The release status of the credits to return
         release_status: ReleaseStatus,
+        #[serde(default)]
+        sort_order: SortReleaseDates,
     }
 
     impl Default for QueryArgs {
@@ -302,6 +297,7 @@ mod get {
             Self {
                 size: DEFAULT_SIZE,
                 release_status: Default::default(),
+                sort_order: Default::default(),
             }
         }
     }
@@ -374,7 +370,11 @@ mod get {
             .filter(|credit| query.release_status.check(credit.release_date()))
             .collect_vec();
 
-        credits.sort_by(|a, b| sort_release_date_descending(a.release_date(), b.release_date()));
+        credits.sort_by(|a, b| {
+            query
+                .sort_order
+                .sort_release_date(a.release_date(), b.release_date())
+        });
 
         let items_size = query.size.min(MAX_SIZE);
         let mut items: Vec<Item> = Vec::with_capacity(items_size);
@@ -621,33 +621,6 @@ mod get {
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
             assert_eq!(credits.matches("<item>").count(), MAX_SIZE);
-        }
-
-        #[test]
-        fn test_release_date_sorting() {
-            let mut dates = vec![
-                None,
-                NaiveDate::from_ymd_opt(2025, 4, 10),
-                None,
-                NaiveDate::from_ymd_opt(2025, 5, 14),
-                NaiveDate::from_ymd_opt(2026, 1, 1),
-                None,
-                NaiveDate::from_ymd_opt(1990, 6, 1),
-            ];
-
-            let sorted_dates = vec![
-                None,
-                None,
-                None,
-                NaiveDate::from_ymd_opt(2026, 1, 1),
-                NaiveDate::from_ymd_opt(2025, 5, 14),
-                NaiveDate::from_ymd_opt(2025, 4, 10),
-                NaiveDate::from_ymd_opt(1990, 6, 1),
-            ];
-
-            dates.sort_by(|a, b| sort_release_date_descending(a.as_ref(), b.as_ref()));
-
-            assert_eq!(dates, sorted_dates);
         }
 
         struct ReleaseStatusInit {
