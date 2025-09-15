@@ -13,19 +13,25 @@ const_assert!(
     "MAX_SIZE must not exceed DEFAULT_SIZE"
 );
 
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
-pub(super) struct Size(SizeInner);
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub(super) struct Size(NonZeroUsize);
 
 impl Size {
     const DEFAULT_SIZE: NonZeroUsize = NonZeroUsize::new(DEFAULT_SIZE_USIZE).unwrap();
     pub(super) const MAX_SIZE: NonZeroUsize = NonZeroUsize::new(MAX_SIZE_USIZE).unwrap();
 }
 
+impl Default for Size {
+    fn default() -> Self {
+        Self(NonZeroUsize::try_from(Size::DEFAULT_SIZE).unwrap())
+    }
+}
+
 impl Deref for Size {
     type Target = NonZeroUsize;
 
     fn deref(&self) -> &Self::Target {
-        &self.0.0
+        &self.0
     }
 }
 
@@ -33,9 +39,21 @@ impl TryFrom<usize> for Size {
     type Error = SizeError;
 
     fn try_from(size: usize) -> Result<Self, Self::Error> {
-        let size = NonZeroUsize::try_from(size)?;
+        let size = NonZeroUsize::try_from(size).map_err(SizeError::from)?;
 
-        SizeInner::try_from(size).map(Size)
+        Size::try_from(size)
+    }
+}
+
+impl TryFrom<NonZeroUsize> for Size {
+    type Error = SizeError;
+
+    fn try_from(size: NonZeroUsize) -> Result<Self, Self::Error> {
+        if size > Size::MAX_SIZE {
+            Err(SizeError::ExceedsMaxSize)
+        } else {
+            Ok(Self(size))
+        }
     }
 }
 
@@ -45,30 +63,7 @@ impl<'de> Deserialize<'de> for Size {
         D: Deserializer<'de>,
     {
         let size = NonZeroUsize::deserialize(deserializer)?;
-        let inner = SizeInner::try_from(size).map_err(DeError::custom)?;
-
-        Ok(Size(inner))
-    }
-}
-
-#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq)]
-pub(super) struct SizeInner(NonZeroUsize);
-
-impl Default for SizeInner {
-    fn default() -> Self {
-        Self(NonZeroUsize::try_from(Size::DEFAULT_SIZE).unwrap())
-    }
-}
-
-impl TryFrom<NonZeroUsize> for SizeInner {
-    type Error = SizeError;
-
-    fn try_from(size: NonZeroUsize) -> Result<Self, Self::Error> {
-        if size > Size::MAX_SIZE {
-            Err(SizeError::ExceedsMaxSize)
-        } else {
-            Ok(Self(size))
-        }
+        Size::try_from(size).map_err(DeError::custom)
     }
 }
 
