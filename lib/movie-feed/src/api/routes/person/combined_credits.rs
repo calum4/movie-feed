@@ -289,10 +289,10 @@ mod get {
     {
         let release = ReleaseStatus::deserialize(deserializer).unwrap_or_default();
 
-        if let ReleaseStatus::Released { max_age, min_age } = &release {
-            if max_age < min_age {
-                return Err(serde::de::Error::custom(ReleaseStatusError::MaxAgeSmaller));
-            }
+        if let ReleaseStatus::Released { max_age, min_age } = &release
+            && max_age < min_age
+        {
+            return Err(serde::de::Error::custom(ReleaseStatusError::MaxAgeSmaller));
         }
 
         Ok(release)
