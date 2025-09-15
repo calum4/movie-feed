@@ -1,36 +1,19 @@
 use crate::api::routes::person::combined_credits::release_status::ReleaseStatus;
 use crate::api::routes::person::combined_credits::release_status::deserialize_release_status;
+use crate::api::routes::person::combined_credits::size::Size;
 use crate::api::routes::person::combined_credits::sort_order::SortReleaseDates;
 use serde::Deserialize;
-use utils::const_assert;
 
-pub(super) const DEFAULT_SIZE: usize = 20;
-pub(super) const MAX_SIZE: usize = 50;
-const_assert!(
-    DEFAULT_SIZE <= MAX_SIZE,
-    "MAX_SIZE must not exceed DEFAULT_SIZE"
-);
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Default, Debug, Eq, PartialEq)]
 pub(super) struct QueryArgs {
-    #[serde(default = "serde_utils::defaults::default_usize::<DEFAULT_SIZE>")]
+    #[serde(default)]
     /// Number of credits to return
-    pub(super) size: usize,
+    pub(super) size: Size,
     #[serde(flatten, deserialize_with = "deserialize_release_status")]
     /// The release status of the credits to return
     pub(super) release_status: ReleaseStatus,
     #[serde(default)]
     pub(super) sort_order: SortReleaseDates,
-}
-
-impl Default for QueryArgs {
-    fn default() -> Self {
-        Self {
-            size: DEFAULT_SIZE,
-            release_status: Default::default(),
-            sort_order: Default::default(),
-        }
-    }
 }
 
 #[cfg(test)]
@@ -40,6 +23,7 @@ mod tests {
     use axum::extract::Query;
     use axum::http::Uri;
     use chrono::TimeDelta;
+    use std::str::FromStr;
 
     #[test]
     fn test_query_args_default_deserialisation() {
@@ -55,7 +39,7 @@ mod tests {
         assert_eq!(
             query.unwrap().0,
             QueryArgs {
-                size: 10,
+                size: Size::try_from(10).unwrap(),
                 ..Default::default()
             }
         );
@@ -63,6 +47,29 @@ mod tests {
         let uri = Uri::from_static(r##"https://example.com?size=-5"##);
         let query = Query::<QueryArgs>::try_from_uri(&uri);
         assert!(query.is_err());
+        assert_eq!(
+            query.err().unwrap().to_string(),
+            "Failed to deserialize query string: size: invalid digit found in string"
+        );
+
+        let uri = Uri::from_str(
+            format!("https://example.com?size={}", Size::MAX_SIZE.get() + 1).as_str(),
+        )
+        .unwrap();
+        let query = Query::<QueryArgs>::try_from_uri(&uri);
+        assert!(query.is_err());
+        assert_eq!(
+            query.err().unwrap().to_string(),
+            "Failed to deserialize query string: size: size must not exceed the max size"
+        );
+
+        let uri = Uri::from_static("https://example.com?size=0");
+        let query = Query::<QueryArgs>::try_from_uri(&uri);
+        assert!(query.is_err());
+        assert_eq!(
+            query.err().unwrap().to_string(),
+            "Failed to deserialize query string: size: invalid value: integer `0`, expected a nonzero usize"
+        );
     }
 
     #[test]

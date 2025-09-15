@@ -1,5 +1,6 @@
 mod query_args;
 mod release_status;
+mod size;
 mod sort_order;
 
 use axum::Router;
@@ -16,7 +17,7 @@ mod get {
     use super::*;
     use crate::api::ApiState;
     use crate::api::process_result::{ProcessedResponse, process_response};
-    use crate::api::routes::person::combined_credits::query_args::{MAX_SIZE, QueryArgs};
+    use crate::api::routes::person::combined_credits::query_args::QueryArgs;
     use crate::api::rss::Rss;
     use ammonia::Builder;
     use axum::Extension;
@@ -117,10 +118,9 @@ mod get {
                 .sort_release_date(a.release_date(), b.release_date())
         });
 
-        let items_size = query.size.min(MAX_SIZE);
-        let mut items: Vec<Item> = Vec::with_capacity(items_size);
+        let mut items: Vec<Item> = Vec::with_capacity(query.size.get());
 
-        for credit in credits.into_iter().take(items_size) {
+        for credit in credits.into_iter().take(query.size.get()) {
             let mut item = ItemBuilder::default();
 
             item.guid(Some(credit_guid(&credit)));
@@ -230,8 +230,8 @@ mod get {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use crate::api::routes::person::combined_credits::query_args::DEFAULT_SIZE;
         use crate::api::routes::person::combined_credits::release_status::ReleaseStatus;
+        use crate::api::routes::person::combined_credits::size::Size;
         use axum::body::HttpBody;
         use tmdb::Tmdb;
         use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
@@ -319,7 +319,7 @@ mod get {
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
-            assert_eq!(credits.matches("<item>").count(), DEFAULT_SIZE);
+            assert_eq!(credits.matches("<item>").count(), Size::default().get());
         }
 
         #[tokio::test]
@@ -327,7 +327,7 @@ mod get {
             const PERSON_ID: i32 = 19498;
 
             let query_args = QueryArgs {
-                size: 5,
+                size: Size::try_from(5).unwrap(),
                 ..QueryArgs::default()
             };
             let bytes = combined_credits(PERSON_ID, query_args).await;
@@ -341,27 +341,13 @@ mod get {
             const PERSON_ID: i32 = 19498;
 
             let query_args = QueryArgs {
-                size: 30,
+                size: Size::try_from(30).unwrap(),
                 ..QueryArgs::default()
             };
             let bytes = combined_credits(PERSON_ID, query_args).await;
 
             let credits = String::from_utf8_lossy(bytes.as_ref());
             assert_eq!(credits.matches("<item>").count(), 30);
-        }
-
-        #[tokio::test]
-        async fn test_size_max() {
-            const PERSON_ID: i32 = 19498;
-
-            let query_args = QueryArgs {
-                size: usize::MAX,
-                ..QueryArgs::default()
-            };
-            let bytes = combined_credits(PERSON_ID, query_args).await;
-
-            let credits = String::from_utf8_lossy(bytes.as_ref());
-            assert_eq!(credits.matches("<item>").count(), MAX_SIZE);
         }
     }
 }
