@@ -1,6 +1,8 @@
 use chrono::{Datelike, NaiveDate, TimeDelta, Utc};
 use serde::{Deserialize, Deserializer};
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use thiserror::Error;
 
 #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(tag = "release_status")]
@@ -191,6 +193,40 @@ impl ReleaseStatus {
             Self::All => true,
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Error)]
+pub(super) enum ReleaseStatusError {
+    MaxAgeSmaller,
+}
+
+impl ReleaseStatusError {
+    pub(super) fn text(&self) -> &'static str {
+        match self {
+            ReleaseStatusError::MaxAgeSmaller => "max_age must be larger than min_age",
+        }
+    }
+}
+
+impl Display for ReleaseStatusError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.text())
+    }
+}
+
+pub(super) fn deserialize_release_status<'de, D>(deserializer: D) -> Result<ReleaseStatus, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let release = ReleaseStatus::deserialize(deserializer).unwrap_or_default();
+
+    if let ReleaseStatus::Released { max_age, min_age } = &release
+        && max_age < min_age
+    {
+        return Err(serde::de::Error::custom(ReleaseStatusError::MaxAgeSmaller));
+    }
+
+    Ok(release)
 }
 
 #[cfg(test)]
