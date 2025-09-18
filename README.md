@@ -1,5 +1,5 @@
 
-# Still Under active development!
+# Still under active development!
 
 <h1 align="center">
   <br>
@@ -35,6 +35,9 @@ readers are available).
 ## Usage
 
 **Note** - Under no circumstance do I recommend exposing Movie Feed to the internet.
+
+Currently, client authentication is not supported and as such could be misused if exposed to an untrusted network. If
+you wish to apply authentication, you could use HTTP basic auth provided by a reverse proxy such as Nginx.
 
 ## License
 
