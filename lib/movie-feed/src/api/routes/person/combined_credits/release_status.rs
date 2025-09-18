@@ -141,6 +141,22 @@ impl ReleaseStatus {
         true
     }
 
+    #[cfg(not(test))]
+    #[inline]
+    fn date_now() -> NaiveDate {
+        let now = Utc::now();
+
+        NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
+            .expect("constructed from Utc::now(), should always be valid")
+    }
+
+    #[cfg(test)]
+    #[inline]
+    // Hardcoded date for tests
+    fn date_now() -> NaiveDate {
+        NaiveDate::from_ymd_opt(2025, 9, 18).expect("hardcoded")
+    }
+
     pub(super) fn check(&self, release_date: Option<&NaiveDate>) -> bool {
         match self {
             Self::Unreleased {
@@ -150,9 +166,7 @@ impl ReleaseStatus {
                     return true;
                 };
 
-                let now = Utc::now();
-                let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
-                    .expect("constructed from Utc::now(), should always be valid");
+                let now = Self::date_now();
 
                 date.gt(&now)
                     && ReleaseStatus::check_max_time_until_release(
@@ -166,9 +180,7 @@ impl ReleaseStatus {
                     return false;
                 };
 
-                let now = Utc::now();
-                let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
-                    .expect("constructed from Utc::now(), should always be valid");
+                let now = Self::date_now();
 
                 date.le(&now)
                     && ReleaseStatus::check_max_age(&now, date, max_age)
@@ -182,9 +194,7 @@ impl ReleaseStatus {
                     return false;
                 };
 
-                let now = Utc::now();
-                let now = NaiveDate::from_ymd_opt(now.year(), now.month(), now.day())
-                    .expect("constructed from Utc::now(), should always be valid");
+                let now = Self::date_now();
 
                 ReleaseStatus::check_max_time_until_release(&now, date, max_time_until_release)
                     && ReleaseStatus::check_max_age(&now, date, max_age)
