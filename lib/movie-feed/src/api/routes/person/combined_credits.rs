@@ -233,6 +233,7 @@ mod get {
         use crate::api::routes::person::combined_credits::release_status::ReleaseStatus;
         use crate::api::routes::person::combined_credits::size::Size;
         use axum::body::HttpBody;
+        use chrono::TimeDelta;
         use tmdb::Tmdb;
         use tmdb_test_utils::api::v3::person::combined_credits::mock_get_person_combined_credits;
         use tmdb_test_utils::api::v3::person::mock_get_person_details;
@@ -275,6 +276,21 @@ mod get {
         }
 
         #[tokio::test]
+        async fn test_get_default() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs::default();
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            assert_eq!(
+                String::from_utf8_lossy(bytes.as_ref()),
+                include_str!(
+                    "../../../../tests/assets/api/person/combined_credits/get/default.xml"
+                )
+            );
+        }
+
+        #[tokio::test]
         async fn test_get_release_status_all() {
             const PERSON_ID: i32 = 19498;
 
@@ -286,7 +302,9 @@ mod get {
 
             assert_eq!(
                 String::from_utf8_lossy(bytes.as_ref()),
-                include_str!("../../../../tests/assets/api/person/get_combined_credits_19498.xml")
+                include_str!(
+                    "../../../../tests/assets/api/person/combined_credits/get/release_status/all.xml"
+                )
             );
         }
 
@@ -306,7 +324,28 @@ mod get {
             assert_eq!(
                 String::from_utf8_lossy(bytes.as_ref()),
                 include_str!(
-                    "../../../../tests/assets/api/person/get_combined_credits_19498_released.xml"
+                    "../../../../tests/assets/api/person/combined_credits/get/release_status/unreleased.xml"
+                )
+            );
+        }
+
+        #[tokio::test]
+        async fn test_get_release_status_has_release_date() {
+            const PERSON_ID: i32 = 19498;
+
+            let query_args = QueryArgs {
+                release_status: ReleaseStatus::HasReleaseDate {
+                    max_time_until_release: Some(TimeDelta::weeks(16)), // 4 months
+                    max_age: Default::default(),
+                },
+                ..QueryArgs::default()
+            };
+            let bytes = combined_credits(PERSON_ID, query_args).await;
+
+            assert_eq!(
+                String::from_utf8_lossy(bytes.as_ref()),
+                include_str!(
+                    "../../../../tests/assets/api/person/combined_credits/get/release_status/has_release_date_max_release_4_months.xml"
                 )
             );
         }
