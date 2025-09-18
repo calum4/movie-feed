@@ -82,7 +82,7 @@ where
 impl Default for ReleaseStatus {
     fn default() -> Self {
         Self::HasReleaseDate {
-            max_time_until_release: None,
+            max_time_until_release: Some(TimeDelta::weeks(4)),
             max_age: None,
         }
     }
