@@ -29,7 +29,7 @@ tokio = {version = "1.47.1", features = ["rt", "rt-multi-thread", "macros"]}
 tracing = {version = "0.1.41", features = []}
 tracing-subscriber = {version = "0.3.20", features = ["env-filter"]}
 reqwest = {version = "0.12.23", features = ["json", "native-tls-vendored"]}
-serde = {version = "1.0.223", features = ["serde_derive"]}
+serde = {version = "1.0.226", features = ["serde_derive"]}
 serde_json = {version = "1.0.145", features = []}
 chrono = {version = "0.4.42", features = ["serde"]}
 secrecy = {version = "0.10.3", features = []}
